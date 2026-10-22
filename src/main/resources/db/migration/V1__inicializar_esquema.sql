@@ -1,0 +1,8 @@
+-- V1: punto de partida del esquema del servicio de turnos y reservas.
+--
+-- Esta migración no crea tablas: deja registrada la versión inicial en
+-- flyway_schema_history para que Flyway administre el esquema desde el comienzo.
+-- Las tablas de usuarios, disponibilidad y procesos de reserva se agregan en
+-- migraciones nuevas (V2, V3, ...) en la Etapa 1 - Usuarios y autenticación.
+--
+-- Regla: una migración ya aplicada no se modifica; cada cambio va en un archivo nuevo.

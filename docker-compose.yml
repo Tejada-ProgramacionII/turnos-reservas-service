@@ -1,0 +1,24 @@
+# Base de datos propia del servicio de turnos para desarrollo local.
+# Usa el puerto 5433 para poder levantarse junto con la base del catálogo (5432).
+# Los valores por defecto coinciden con application.properties y se pueden
+# sobrescribir con variables de entorno (DB_NAME, DB_USERNAME, DB_PASSWORD, DB_PORT).
+services:
+  turnos-db:
+    image: postgres:17
+    container_name: turnos-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-turnos}
+      POSTGRES_USER: ${DB_USERNAME:-turnos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-turnos}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - turnos-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  turnos-db-data:

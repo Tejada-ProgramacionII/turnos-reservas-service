@@ -1,0 +1,42 @@
+name: CI y SonarCloud
+
+on:
+  push:
+    branches: [main, testing, develop]
+  pull_request:
+    branches: [main, testing, develop]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+# Si llega un push nuevo a la misma rama, cancela la corrida anterior
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Tests y análisis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Obtener código e historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar necesita el historial para detectar el código nuevo
+
+      - name: Configurar Java 25 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compilar, testear y generar cobertura
+        run: ./mvnw -B -ntp clean verify
+
+      - name: Publicar análisis en SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./mvnw -B -ntp sonar:sonar

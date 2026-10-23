@@ -31,14 +31,32 @@ public class UsuarioEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(length = 50, unique = true, nullable = false)
     private String login;
+
+    @Column(length = 60, nullable = false)
     private String passwordHash;
+
+    @Column(length = 50)
     private String firstName;
+
+    @Column(length = 50)
     private String lastName;
+
+    @Column(length = 254, unique = true, nullable = false)
     private String email;
+
+    @Column(length = 256)
     private String imageUrl;
+
+    @Column(nullable = false)
     private boolean activated;
+
+    @Column(length = 10, nullable = false)
     private String langKey;
+
+    @Column(unique = true, nullable = false)
     private UUID externalPatientId;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -46,8 +64,14 @@ public class UsuarioEntity {
     @Column(name = "authority_name")
     private Set<String> authorities;
 
+    @Column(length = 50, nullable = false)
     private String createdBy;
+
+    @Column(nullable = false)
     private Instant createdDate;
+
+    @Column(length = 50)
     private String lastModifiedBy;
+
     private Instant lastModifiedDate;
 }

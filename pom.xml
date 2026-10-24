@@ -43,10 +43,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- Seguridad: rutas públicas y protegidas, BCrypt para las contraseñas -->
+        <!-- Seguridad: rutas públicas y protegidas, Argon2id para las contraseñas -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Implementación de Argon2 que usa Argon2PasswordEncoder (Spring Boot no maneja su versión) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.86</version>
         </dependency>
         <!-- JWT: emisión (y luego validación) de los tokens de usuario -->
         <dependency>

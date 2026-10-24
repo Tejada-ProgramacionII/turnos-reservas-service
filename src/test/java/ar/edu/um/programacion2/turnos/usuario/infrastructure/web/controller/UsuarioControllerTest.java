@@ -11,14 +11,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
 import ar.edu.um.programacion2.turnos.usuario.application.exception.EmailAlreadyUsedException;
+import ar.edu.um.programacion2.turnos.usuario.application.exception.InvalidCredentialsException;
 import ar.edu.um.programacion2.turnos.usuario.application.exception.LoginAlreadyUsedException;
 import ar.edu.um.programacion2.turnos.usuario.application.service.UsuarioService;
 import ar.edu.um.programacion2.turnos.usuario.domain.model.Usuario;
+import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.LoginRequest;
+import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.TokenResponse;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.UsuarioRequest;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.mapper.UsuarioDtoMapper;
 
@@ -73,5 +77,29 @@ class UsuarioControllerTest {
 
         assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(respuesta.getBody()).extracting(ProblemDetail::getDetail).isEqualTo("email ya registrado");
+    }
+
+    @Test
+    void loginCorrectoResponde200ConElToken() {
+        when(usuarioService.authenticateUsuario("jtejada", "secreta123")).thenReturn("token");
+
+        ResponseEntity<Object> respuesta = controller.authenticateUsuario(new LoginRequest("jtejada", "secreta123"));
+
+        assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(respuesta.getBody()).isInstanceOf(TokenResponse.class)
+                .extracting("idToken").isEqualTo("token");
+        assertThat(respuesta.getHeaders().getFirst(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer token");
+    }
+
+    @Test
+    void credencialesInvalidasResponden401ConElMotivo() {
+        when(usuarioService.authenticateUsuario("jtejada", "incorrecta"))
+                .thenThrow(new InvalidCredentialsException());
+
+        ResponseEntity<Object> respuesta = controller.authenticateUsuario(new LoginRequest("jtejada", "incorrecta"));
+
+        assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(respuesta.getBody()).isInstanceOf(ProblemDetail.class)
+                .extracting("detail").isEqualTo("credenciales inválidas");
     }
 }

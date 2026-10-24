@@ -27,6 +27,14 @@ class BCryptPasswordHasherAdapterTest {
     }
 
     @Test
+    void matchesAceptaLaContrasenaCorrectaYRechazaOtra() {
+        String hash = adapter.hash("secreta123");
+
+        assertThat(adapter.matches("secreta123", hash)).isTrue();
+        assertThat(adapter.matches("otra", hash)).isFalse();
+    }
+
+    @Test
     void dosHashesDeLaMismaContrasenaSonDistintos() {
         assertThat(adapter.hash("secreta123")).isNotEqualTo(adapter.hash("secreta123"));
     }

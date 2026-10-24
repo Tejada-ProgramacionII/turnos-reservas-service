@@ -18,9 +18,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UsuarioRequest {
 
-    // Misma expresión que usa JHipster para el login (Constants.LOGIN_REGEX)
+    // Expresión del login de JHipster (Constants.LOGIN_REGEX), con las dos alternativas
+    // agrupadas para que ^ y $ apliquen a ambas
     public static final String LOGIN_REGEX =
-            "^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)|(?>[_.@A-Za-z0-9-]+)$";
+            "^(?:(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)|(?>[_.@A-Za-z0-9-]+))$";
 
     @NotBlank
     @Size(min = 1, max = 50)

@@ -1,6 +1,7 @@
 package ar.edu.um.programacion2.turnos.usuario.infrastructure.web.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -15,15 +16,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.server.ResponseStatusException;
 
 import ar.edu.um.programacion2.turnos.usuario.application.exception.EmailAlreadyUsedException;
 import ar.edu.um.programacion2.turnos.usuario.application.exception.InvalidCredentialsException;
 import ar.edu.um.programacion2.turnos.usuario.application.exception.LoginAlreadyUsedException;
+import ar.edu.um.programacion2.turnos.usuario.application.exception.UsuarioNotFoundException;
 import ar.edu.um.programacion2.turnos.usuario.application.service.UsuarioService;
 import ar.edu.um.programacion2.turnos.usuario.domain.model.Usuario;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.LoginRequest;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.TokenResponse;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.UsuarioRequest;
+import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.dto.UsuarioResponse;
 import ar.edu.um.programacion2.turnos.usuario.infrastructure.web.mapper.UsuarioDtoMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -101,5 +106,31 @@ class UsuarioControllerTest {
         assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(respuesta.getBody()).isInstanceOf(ProblemDetail.class)
                 .extracting("detail").isEqualTo("credenciales inválidas");
+    }
+
+    private static Jwt jwtDe(String login) {
+        return Jwt.withTokenValue("token").header("alg", "HS512").subject(login).build();
+    }
+
+    @Test
+    void getAccountDevuelveLosDatosDelUsuarioDelToken() {
+        when(usuarioService.getUsuarioByLogin("jtejada"))
+                .thenReturn(Usuario.builder().login("jtejada").email("jtejada@ejemplo.com").build());
+
+        ResponseEntity<UsuarioResponse> respuesta = controller.getAccount(jwtDe("jtejada"));
+
+        assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(respuesta.getBody()).extracting(UsuarioResponse::getLogin).isEqualTo("jtejada");
+    }
+
+    @Test
+    void getAccountResponde404SiElUsuarioDelTokenYaNoExiste() {
+        when(usuarioService.getUsuarioByLogin("fantasma")).thenThrow(new UsuarioNotFoundException("fantasma"));
+
+        Jwt jwt = jwtDe("fantasma");
+        assertThatThrownBy(() -> controller.getAccount(jwt))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

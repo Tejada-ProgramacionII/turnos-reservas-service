@@ -16,4 +16,9 @@ public class BCryptPasswordHasherAdapter implements PasswordHasher {
     public String hash(String password) {
         return passwordEncoder.encode(password);
     }
+
+    @Override
+    public boolean matches(String password, String passwordHash) {
+        return passwordEncoder.matches(password, passwordHash);
+    }
 }

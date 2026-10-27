@@ -11,6 +11,13 @@
 
 ## Configuración
 
+- `CATALOGO_BASE_URL` (obligatoria): URL base de `catalogo-sincronizacion-service`, al que turnos consulta la agenda vigente de un profesional con el JWT del usuario. Si falta, el servicio no arranca. En local, con los dos servicios en la misma máquina, el catálogo usa el 8080 y turnos tiene que ir en otro puerto:
+
+  ```bash
+  export CATALOGO_BASE_URL=http://localhost:8080
+  SERVER_PORT=8081 ./mvnw spring-boot:run
+  ```
+
 - `JWT_SECRET` (obligatoria): secreto en Base64, de al menos 64 bytes, con el que se firman los JWT de usuario (HS512). No tiene valor por defecto y nunca se guarda en el repositorio. Para generar uno y usarlo en la terminal actual:
 
   ```bash

@@ -17,4 +17,13 @@
   export JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
   ```
 
-- Los tests no necesitan la variable: usan un secreto de prueba propio en `src/test/resources/application.properties`.
+- `CATEDRA_BASE_URL` y `CATEDRA_JWT` (obligatorias): URL base de la API REST de la cátedra y JWT técnico de la cuenta del proyecto (dura un año). Si falta alguna, el servicio no arranca. Sus valores se reciben por otro canal y **no se publican** en el repositorio, en los logs ni en la documentación:
+
+  ```bash
+  export CATEDRA_BASE_URL=<url-de-la-catedra>
+  export CATEDRA_JWT=<jwt-tecnico>
+  ```
+
+  Los timeouts tienen valores por defecto (5 s de conexión y 30 s de lectura) y se pueden cambiar con `CATEDRA_CONNECT_TIMEOUT` y `CATEDRA_READ_TIMEOUT` (por ejemplo, `10s`).
+
+- Los tests no necesitan estas variables: usan valores de prueba propios en `src/test/resources/application.properties`.

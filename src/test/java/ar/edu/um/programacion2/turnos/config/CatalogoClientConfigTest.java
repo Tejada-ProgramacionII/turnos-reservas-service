@@ -17,8 +17,6 @@ import org.springframework.web.client.RestClient;
 
 import com.sun.net.httpserver.HttpServer;
 
-import ar.edu.um.programacion2.turnos.disponibilidad.infrastructure.client.interceptor.JwtUsuarioInterceptor;
-
 class CatalogoClientConfigTest {
 
     private final AtomicReference<String> pathRecibido = new AtomicReference<>();

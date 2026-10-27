@@ -5,8 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-import ar.edu.um.programacion2.turnos.disponibilidad.infrastructure.client.interceptor.JwtUsuarioInterceptor;
-
 @Configuration
 public class CatalogoClientConfig {
 

@@ -1,4 +1,4 @@
-package ar.edu.um.programacion2.turnos.disponibilidad.infrastructure.client.interceptor;
+package ar.edu.um.programacion2.turnos.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

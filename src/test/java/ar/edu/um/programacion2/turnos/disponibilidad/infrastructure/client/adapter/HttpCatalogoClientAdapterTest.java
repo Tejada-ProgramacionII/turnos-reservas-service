@@ -31,10 +31,10 @@ import com.sun.net.httpserver.HttpServer;
 
 import ar.edu.um.programacion2.turnos.config.CatalogoClientConfig;
 import ar.edu.um.programacion2.turnos.config.CatalogoProperties;
+import ar.edu.um.programacion2.turnos.config.JwtUsuarioInterceptor;
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoNoDisponibleException;
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
 import ar.edu.um.programacion2.turnos.disponibilidad.domain.model.AgendaProfesional;
-import ar.edu.um.programacion2.turnos.disponibilidad.infrastructure.client.interceptor.JwtUsuarioInterceptor;
 import ar.edu.um.programacion2.turnos.disponibilidad.infrastructure.client.mapper.AgendaProfesionalClientMapper;
 
 class HttpCatalogoClientAdapterTest {

@@ -8,3 +8,13 @@
 - Las migraciones se nombran `V<número>__<descripción>.sql`. Una migración ya aplicada no se modifica: cada cambio va en un archivo nuevo.
 - Hibernate no crea tablas (`ddl-auto=validate`): solo verifica que las entidades coincidan con el esquema.
 - Los tests usan H2 en memoria con las mismas migraciones.
+
+## Configuración
+
+- `JWT_SECRET` (obligatoria): secreto en Base64, de al menos 64 bytes, con el que se firman los JWT de usuario (HS512). No tiene valor por defecto y nunca se guarda en el repositorio. Para generar uno y usarlo en la terminal actual:
+
+  ```bash
+  export JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+  ```
+
+- Los tests no necesitan la variable: usan un secreto de prueba propio en `src/test/resources/application.properties`.

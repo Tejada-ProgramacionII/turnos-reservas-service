@@ -33,4 +33,12 @@
 
   Los timeouts tienen valores por defecto (5 s de conexión y 30 s de lectura) y se pueden cambiar con `CATEDRA_CONNECT_TIMEOUT` y `CATEDRA_READ_TIMEOUT` (por ejemplo, `10s`).
 
+- `KAFKA_BOOTSTRAP_SERVERS`, `KAFKA_TOPIC_ACCIONES` y `KAFKA_GRUPO` (obligatorias): broker de Kafka de la cátedra, topic por el que llegan el pedido de teléfono y los resultados de las reservas (`kafkaAppointmentActionsTopic` de la integración técnica) y consumer group de este servicio. Si falta alguna, el servicio no arranca. Turnos usa un grupo propio (por ejemplo, el sugerido con el sufijo `-turnos`) para no compartir rebalanceos con el catálogo:
+
+  ```bash
+  export KAFKA_BOOTSTRAP_SERVERS=<broker-de-la-catedra>
+  export KAFKA_TOPIC_ACCIONES=alumnos.turnos.acciones.<groupId>
+  export KAFKA_GRUPO=alumnos-<groupId>-turnos
+  ```
+
 - Los tests no necesitan estas variables: usan valores de prueba propios en `src/test/resources/application.properties`.

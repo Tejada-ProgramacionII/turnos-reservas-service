@@ -35,7 +35,7 @@ public class UsuarioEntity {
     @Column(length = 50, unique = true, nullable = false)
     private String login;
 
-    @Column(length = 60, nullable = false)
+    @Column(length = 255, nullable = false)
     private String passwordHash;
 
     @Column(length = 50)

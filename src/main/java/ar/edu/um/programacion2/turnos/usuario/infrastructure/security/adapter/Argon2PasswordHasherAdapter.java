@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class BCryptPasswordHasherAdapter implements PasswordHasher {
+public class Argon2PasswordHasherAdapter implements PasswordHasher {
 
     private final PasswordEncoder passwordEncoder;
 

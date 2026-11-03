@@ -46,6 +46,8 @@ docker compose up -d turnos-db
 set -a && source .env && set +a && SERVER_PORT=8081 ./mvnw spring-boot:run
 ```
 
+En macOS con Docker Desktop, los contenedores no enrutan por la interfaz de ZeroTier (macOS devuelve no route to host); hace falta un relay local en el host hacia 172.17.201.1 (puertos 8090, 6379, 9094). En Linux no es necesario.
+
 ## Base de datos y migraciones
 
 - Base local: PostgreSQL con Docker Compose (`docker compose up -d turnos-db` para levantar solo la base y correr el servicio con `./mvnw spring-boot:run`).

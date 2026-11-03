@@ -35,21 +35,21 @@ public class AbandonarProcesoUseCaseImpl implements AbandonarProcesoUseCase {
     // D-16: no se llama a la cátedra, que no cancela un hold sin confirmar; el hold vence solo.
     private ProcesoReserva abandonar(ProcesoReserva proceso) {
         EstadoProceso estado = proceso.getEstado();
-        if (estado == EstadoProceso.CONFIRMADO) {
-            throw new OperacionNoPermitidaException(
-                    "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)", estado);
-        }
-        // La cátedra ya tiene el teléfono y puede confirmar: abandonar dejaría una reserva viva que acá figura cancelada.
-        if (estado == EstadoProceso.TELEFONO_ENVIADO) {
-            throw new OperacionNoPermitidaException(
-                    "El teléfono ya se envió: esperá el resultado y, si se confirma, cancelala (CU-08)", estado);
-        }
-        if (estado.esFinal()) {
-            throw new OperacionNoPermitidaException("El proceso ya terminó", estado);
+        if (!estado.esAbandonable()) {
+            throw new OperacionNoPermitidaException(motivoDeRechazo(estado), estado);
         }
         proceso.setMotivo(MOTIVO);
         proceso.pasarA(EstadoProceso.CANCELADO);
         proceso.setActualizadoEn(clock.instant());
         return procesoReservaRepository.save(proceso);
+    }
+
+    private static String motivoDeRechazo(EstadoProceso estado) {
+        return switch (estado) {
+            case CONFIRMADO -> "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)";
+            // La cátedra ya tiene el teléfono y puede confirmar: abandonar dejaría una reserva viva que acá figura cancelada.
+            case TELEFONO_ENVIADO -> "El teléfono ya se envió: esperá el resultado y, si se confirma, cancelala (CU-08)";
+            default -> "El proceso ya terminó";
+        };
     }
 }

@@ -44,6 +44,7 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRecha
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ProcesoReservaRepository;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ReservasCatedraClient;
@@ -419,6 +420,11 @@ class IniciarReservaUseCaseImplTest {
                     .filter(proceso -> reservationProcessId.equals(proceso.getReservationProcessId()))
                     .findFirst()
                     .map(RepositorioEnMemoria::copiar);
+        }
+
+        @Override
+        public Pagina<ProcesoReserva> findByUsuarioId(Long usuarioId, EstadoProceso estado, int pagina, int tamanio) {
+            throw new UnsupportedOperationException("CU-04 no lista procesos");
         }
 
         @Override

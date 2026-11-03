@@ -1,6 +1,7 @@
 package ar.edu.um.programacion2.turnos.reserva.infrastructure.web.controller;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoNoDisponibleException;
@@ -27,9 +29,11 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRecha
 import ar.edu.um.programacion2.turnos.reserva.application.exception.TelefonoInvalidoException;
 import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.InformarTelefonoRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.IniciarReservaRequest;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.ProcesoReservaResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.mapper.ProcesoReservaDtoMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +45,8 @@ public class ReservaController {
 
     // Sin respuesta de la cátedra: el resultado queda pendiente y lo resuelve CU-09.
     private static final Set<EstadoProceso> PENDIENTES = Set.of(EstadoProceso.INICIADO, EstadoProceso.BLOQUEADO);
+
+    private static final int TAMANIO_MAXIMO = 100;
 
     private final ReservaService reservaService;
     private final ProcesoReservaDtoMapper procesoReservaDtoMapper;
@@ -69,6 +75,24 @@ public class ReservaController {
         } catch (CatalogoRechazoException | CatedraRechazoException e) {
             return problema(HttpStatus.BAD_GATEWAY, "Error de integración al iniciar la reserva");
         }
+    }
+
+    // CU-07: más recientes primero; el total va en X-Total-Count, como en la cátedra.
+    @GetMapping
+    public ResponseEntity<Object> getMisReservas(@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) EstadoProceso estado,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        if (page < 0 || size < 1 || size > TAMANIO_MAXIMO) {
+            return problema(HttpStatus.BAD_REQUEST, "page tiene que ser >= 0 y size entre 1 y " + TAMANIO_MAXIMO);
+        }
+        Pagina<ProcesoReserva> pagina = reservaService.getMisReservas(jwt.getSubject(), estado, page, size);
+        List<ProcesoReservaResponse> contenido = pagina.getContenido().stream()
+                .map(procesoReservaDtoMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(pagina.getTotal()))
+                .body(contenido);
     }
 
     @GetMapping("/{id}")

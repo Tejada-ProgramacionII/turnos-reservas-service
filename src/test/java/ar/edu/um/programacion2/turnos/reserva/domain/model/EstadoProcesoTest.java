@@ -55,6 +55,25 @@ class EstadoProcesoTest {
         assertThat(estado.esFinal()).isFalse();
     }
 
+    @ParameterizedTest
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"})
+    void antesDeEnviarElTelefonoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isTrue();
+        assertThat(estado.esCancelable()).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"}, mode = EnumSource.Mode.EXCLUDE)
+    void conElTelefonoEnviadoOTerminadoNoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isFalse();
+    }
+
+    @Test
+    void soloElConfirmadoSePuedeCancelar() {
+        assertThat(Arrays.stream(EstadoProceso.values()).filter(EstadoProceso::esCancelable))
+                .containsExactly(EstadoProceso.CONFIRMADO);
+    }
+
     @Test
     void elDiagramaTieneVeintiunTransiciones() {
         assertThat(transicionesValidas()).hasSize(VALIDAS.size());

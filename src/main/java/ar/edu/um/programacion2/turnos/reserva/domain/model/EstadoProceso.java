@@ -18,6 +18,16 @@ public enum EstadoProceso {
         return siguientes().contains(nuevo);
     }
 
+    // CU-10: con el teléfono ya enviado la cátedra está decidiendo, así que no se abandona.
+    public boolean esAbandonable() {
+        return this == INICIADO || this == BLOQUEADO || this == ESPERANDO_TELEFONO;
+    }
+
+    // Solo una reserva confirmada se cancela (CU-08).
+    public boolean esCancelable() {
+        return this == CONFIRMADO;
+    }
+
     public boolean esFinal() {
         return siguientes().isEmpty();
     }

@@ -39,6 +39,11 @@ public class AbandonarProcesoUseCaseImpl implements AbandonarProcesoUseCase {
             throw new OperacionNoPermitidaException(
                     "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)", estado);
         }
+        // La cátedra ya tiene el teléfono y puede confirmar: abandonar dejaría una reserva viva que acá figura cancelada.
+        if (estado == EstadoProceso.TELEFONO_ENVIADO) {
+            throw new OperacionNoPermitidaException(
+                    "El teléfono ya se envió: esperá el resultado y, si se confirma, cancelala (CU-08)", estado);
+        }
         if (estado.esFinal()) {
             throw new OperacionNoPermitidaException("El proceso ya terminó", estado);
         }

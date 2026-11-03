@@ -52,7 +52,7 @@ class AbandonarProcesoUseCaseImplTest {
 
     @ParameterizedTest
     @EnumSource(value = EstadoProceso.class,
-            names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO", "TELEFONO_ENVIADO"})
+            names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"})
     void unProcesoPendienteQuedaCanceladoComoAbandonado(EstadoProceso estado) {
         when(procesoReservaRepository.findById(PROCESO_ID)).thenReturn(Optional.of(proceso(estado)));
         when(procesoReservaRepository.save(any())).thenAnswer(invocacion -> invocacion.getArgument(0));
@@ -70,6 +70,14 @@ class AbandonarProcesoUseCaseImplTest {
         when(procesoReservaRepository.findById(PROCESO_ID)).thenReturn(Optional.of(proceso(EstadoProceso.CONFIRMADO)));
 
         assertNoPermitido(EstadoProceso.CONFIRMADO, "usá la cancelación de la reserva (CU-08)");
+    }
+
+    @Test
+    void conElTelefonoEnviadoSeRechazaIndicandoEsperarElResultado() {
+        when(procesoReservaRepository.findById(PROCESO_ID))
+                .thenReturn(Optional.of(proceso(EstadoProceso.TELEFONO_ENVIADO)));
+
+        assertNoPermitido(EstadoProceso.TELEFONO_ENVIADO, "esperá el resultado y, si se confirma, cancelala (CU-08)");
     }
 
     @ParameterizedTest

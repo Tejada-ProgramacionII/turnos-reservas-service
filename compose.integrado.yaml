@@ -1,0 +1,86 @@
+# Todo el sistema: catálogo + turnos + sus dos bases. Asume los repos como carpetas hermanas:
+#   repo/catalogo-sincronizacion-service  y  repo/turnos-reservas-service
+# Cada servicio lee su propio .env (ver .env.example de cada repo). Turnos llega al catálogo por
+# nombre (http://catalogo:8080) en la red compartida.
+#
+# Usa volúmenes propios: nunca comparte la base con los compose de cada servicio, para que no
+# haya dos Postgres sobre el mismo volumen. Las bases no se publican en el host.
+#   docker compose -f compose.integrado.yaml up -d --build
+name: turnos-integrado
+
+services:
+  catalogo-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: catalogo
+      POSTGRES_USER: catalogo
+      POSTGRES_PASSWORD: catalogo
+    volumes:
+      - catalogo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - integrado
+
+  catalogo:
+    build: ../catalogo-sincronizacion-service
+    depends_on:
+      catalogo-db:
+        condition: service_healthy
+    env_file: ../catalogo-sincronizacion-service/.env
+    environment:
+      DB_URL: jdbc:postgresql://catalogo-db:5432/catalogo
+      DB_USERNAME: catalogo
+      DB_PASSWORD: catalogo
+    ports:
+      - "${CATALOGO_PORT:-8080}:8080"
+    networks:
+      - integrado
+
+  turnos-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: turnos
+      POSTGRES_USER: turnos
+      POSTGRES_PASSWORD: turnos
+    volumes:
+      - turnos-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - integrado
+
+  turnos:
+    build: .
+    depends_on:
+      turnos-db:
+        condition: service_healthy
+      catalogo:
+        condition: service_started
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://turnos-db:5432/turnos
+      DB_USERNAME: turnos
+      DB_PASSWORD: turnos
+      CATALOGO_BASE_URL: http://catalogo:8080
+    ports:
+      - "${TURNOS_PORT:-8081}:8080"
+    networks:
+      - integrado
+
+# Red compartida fuera de 172.17.x (cátedra por ZeroTier) y de las de cada servicio (10.20 y 10.21).
+networks:
+  integrado:
+    ipam:
+      config:
+        - subnet: 10.22.0.0/24
+
+volumes:
+  catalogo-db-data:
+  turnos-db-data:

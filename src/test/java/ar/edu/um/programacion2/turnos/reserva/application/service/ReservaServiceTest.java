@@ -19,6 +19,7 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReser
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
+import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.CancelarReservaUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetMisReservasUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetProcesoReservaUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.IniciarReservaUseCase;
@@ -34,6 +35,9 @@ class ReservaServiceTest {
 
     @Mock
     private GetMisReservasUseCase getMisReservasUseCase;
+
+    @Mock
+    private CancelarReservaUseCase cancelarReservaUseCase;
 
     @InjectMocks
     private ReservaService service;
@@ -71,5 +75,21 @@ class ReservaServiceTest {
         when(getMisReservasUseCase.getMisReservas("jtejada", EstadoProceso.CONFIRMADO, 1, 10)).thenReturn(pagina);
 
         assertThat(service.getMisReservas("jtejada", EstadoProceso.CONFIRMADO, 1, 10)).isSameAs(pagina);
+    }
+
+    @Test
+    void cancelarReservaDevuelveElProcesoCancelado() {
+        ProcesoReserva proceso = ProcesoReserva.builder().id(1L).build();
+        when(cancelarReservaUseCase.cancelarReserva("jtejada", 1L, "motivo")).thenReturn(Optional.of(proceso));
+
+        assertThat(service.cancelarReserva("jtejada", 1L, "motivo")).isSameAs(proceso);
+    }
+
+    @Test
+    void cancelarReservaTiraExcepcionCuandoNoLoEncuentra() {
+        when(cancelarReservaUseCase.cancelarReserva("jtejada", 99L, null)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.cancelarReserva("jtejada", 99L, null))
+                .isInstanceOf(ProcesoReservaNoEncontradoException.class);
     }
 }

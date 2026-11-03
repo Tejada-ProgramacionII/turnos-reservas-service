@@ -2,8 +2,13 @@ package ar.edu.um.programacion2.turnos.reserva.infrastructure.persistence.adapte
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ProcesoReservaRepository;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.persistence.entity.ProcesoReservaEntity;
@@ -14,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JpaProcesoReservaRepositoryAdapter implements ProcesoReservaRepository {
+
+    // El id desempata dos procesos creados en el mismo instante.
+    private static final Sort MAS_RECIENTES_PRIMERO = Sort.by(Sort.Order.desc("creadoEn"), Sort.Order.desc("id"));
 
     private final JpaProcesoReservaRepository jpaProcesoReservaRepository;
     private final ProcesoReservaMapper procesoReservaMapper;
@@ -33,5 +41,17 @@ public class JpaProcesoReservaRepositoryAdapter implements ProcesoReservaReposit
     public Optional<ProcesoReserva> findByReservationProcessId(String reservationProcessId) {
         return jpaProcesoReservaRepository.findByReservationProcessId(reservationProcessId)
                 .map(procesoReservaMapper::toDomainModel);
+    }
+
+    @Override
+    public Pagina<ProcesoReserva> findByUsuarioId(Long usuarioId, EstadoProceso estado, int pagina, int tamanio) {
+        PageRequest pedido = PageRequest.of(pagina, tamanio, MAS_RECIENTES_PRIMERO);
+        Page<ProcesoReservaEntity> resultado = estado == null
+                ? jpaProcesoReservaRepository.findByUsuarioId(usuarioId, pedido)
+                : jpaProcesoReservaRepository.findByUsuarioIdAndEstado(usuarioId, estado, pedido);
+        return Pagina.<ProcesoReserva>builder()
+                .contenido(resultado.map(procesoReservaMapper::toDomainModel).getContent())
+                .total(resultado.getTotalElements())
+                .build();
     }
 }

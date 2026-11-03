@@ -12,7 +12,7 @@
 ## Precondiciones
 
 - El usuario inició sesión (CU-02).
-- El proceso es del usuario y está pendiente: `INICIADO`, `BLOQUEADO`, `ESPERANDO_TELEFONO` o `TELEFONO_ENVIADO`.
+- El proceso es del usuario y está pendiente sin el teléfono enviado: `INICIADO`, `BLOQUEADO` o `ESPERANDO_TELEFONO`.
 
 ## Flujo principal
 
@@ -27,6 +27,7 @@
 - **2a. El proceso no existe o es de otro usuario.** Se responde "no encontrado" (D-13).
 - **2b. El proceso ya está en un estado final.** Se rechaza informando su estado.
 - **2c. El proceso está `CONFIRMADO`.** No es un abandono: se rechaza indicando que corresponde cancelar la reserva (CU-08).
+- **2d. El proceso está `TELEFONO_ENVIADO`.** Se rechaza: la cátedra ya tiene el teléfono y puede confirmar la reserva, que quedaría viva en la cátedra y cancelada acá. El usuario espera el resultado (CU-06) y, si se confirma, la cancela (CU-08).
 - **3a. Llega después un evento de la cátedra del mismo proceso** (por ejemplo, `AppointmentProcessExpired`). No cambia nada: el proceso ya es final (D-05).
 
 ## Postcondiciones

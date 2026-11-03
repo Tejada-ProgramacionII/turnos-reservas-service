@@ -27,7 +27,7 @@
 
 - **2a. El proceso no existe o es de otro usuario.** Se responde "no encontrado" (D-13).
 - **3a. El proceso ya está `CANCELADO`.** Se responde su estado actual, sin volver a llamar a la cátedra.
-- **3b. El proceso está pendiente** (`BLOQUEADO`, `ESPERANDO_TELEFONO` o `TELEFONO_ENVIADO`). Corresponde abandonarlo (CU-10).
+- **3b. El proceso está pendiente** (`BLOQUEADO` o `ESPERANDO_TELEFONO`). Corresponde abandonarlo (CU-10). Con el teléfono ya enviado (`TELEFONO_ENVIADO`), se espera el resultado (CU-06) y, si se confirma, se cancela.
 - **3c. El proceso está en otro estado final.** Se rechaza informando su estado.
 - **4a. La cátedra responde `RESERVATION_NOT_CANCELLABLE`.** Se rechaza y se reconcilia el estado del proceso (CU-07).
 - **4b. Timeout o la cátedra no responde.** Se reconcilia consultando la reserva (D-08). Si ya figura cancelada, se sigue en 5; si no, se reintenta un número limitado de veces (la cancelación de la cátedra es idempotente). Si sigue sin respuesta, se informa que no se pudo cancelar y el proceso no cambia.

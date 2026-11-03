@@ -97,7 +97,7 @@ stateDiagram-v2
     INICIADO --> CANCELADO: abandono
     BLOQUEADO --> CANCELADO: abandono
     ESPERANDO_TELEFONO --> CANCELADO: abandono
-    TELEFONO_ENVIADO --> CANCELADO: abandono
+    TELEFONO_ENVIADO --> CANCELADO: AppointmentCancelled
     CONFIRMADO --> CANCELADO: cancelación
     FALLIDO --> [*]
     VENCIDO --> [*]
@@ -126,7 +126,7 @@ stateDiagram-v2
 | D-13 | Un usuario solo ve, modifica o cancela **sus propios** procesos y reservas. Si pide uno ajeno, se responde igual que si no existiera. | Aislamiento obligatorio entre usuarios (enunciado 9) sin revelar que el recurso existe. |
 | D-14 | Al arrancar y periódicamente se **reconcilian** con la cátedra los procesos no finales; los que superaron `expiresAt` y no tienen reserva confirmada pasan a `VENCIDO`. | Recuperar procesos pendientes o interrumpidos y procesar vencimientos (enunciado 4.2 y 8). |
 | D-15 | Los errores que ve el usuario tienen un **motivo funcional**, sin tokens, contraseñas ni detalles internos; el detalle técnico queda en los logs (sin secretos). | Evitar exponer secretos o detalles internos (enunciado 9). |
-| D-16 | El usuario puede **abandonar** un proceso pendiente con una acción explícita. El proceso pasa a `CANCELADO` localmente, **sin llamar a la cátedra**, y el hold se libera solo al vencer (10 minutos). Salir de la app o volver atrás no abandona nada. | Se comprobó contra la cátedra el 27/10/2026: cancelar un hold sin confirmar responde 404 `RESERVATION_NOT_FOUND` y una reserva `PHONE_PENDING` no es cancelable. La cancelación de la sección 12 del contrato solo sirve para reservas confirmadas (CU-08), como dice la matriz de errores (13.1). Reemplaza la versión anterior, que se apoyaba en una aclaración del profesor en Slack (29/09/2026). |
+| D-16 | El usuario puede **abandonar** un proceso pendiente (`INICIADO`, `BLOQUEADO` o `ESPERANDO_TELEFONO`) con una acción explícita. Con el teléfono ya enviado (`TELEFONO_ENVIADO`) no se puede: la cátedra puede confirmar igual, y la reserva quedaría viva en la cátedra y cancelada acá; hay que esperar el resultado y, si se confirma, cancelarla (CU-08). El proceso pasa a `CANCELADO` localmente, **sin llamar a la cátedra**, y el hold se libera solo al vencer (10 minutos). Salir de la app o volver atrás no abandona nada. | Se comprobó contra la cátedra el 27/10/2026: cancelar un hold sin confirmar responde 404 `RESERVATION_NOT_FOUND` y una reserva `PHONE_PENDING` no es cancelable. La cancelación de la sección 12 del contrato solo sirve para reservas confirmadas (CU-08), como dice la matriz de errores (13.1). Reemplaza la versión anterior, que se apoyaba en una aclaración del profesor en Slack (29/09/2026). |
 | D-17 | Si la creación del hold no tiene respuesta, el proceso queda con **resultado incierto** en `INICIADO` y no se repite el pedido. CU-09 lo cierra como `FALLIDO` cuando pasó la vigencia máxima de un hold, porque cualquier hold creado ya venció solo. | Un timeout no prueba que la operación haya fallado (contrato 18.4) y sin `reservationProcessId` no hay con qué reconciliar. |
 
 ### Pendientes

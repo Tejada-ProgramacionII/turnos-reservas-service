@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetProcesoReservaUseCase;
+import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.InformarTelefonoUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.IniciarReservaUseCase;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,6 +28,9 @@ class ReservaServiceTest {
 
     @Mock
     private GetProcesoReservaUseCase getProcesoReservaUseCase;
+
+    @Mock
+    private InformarTelefonoUseCase informarTelefonoUseCase;
 
     @InjectMocks
     private ReservaService service;
@@ -56,5 +60,21 @@ class ReservaServiceTest {
         assertThatThrownBy(() -> service.getProcesoReserva("jtejada", 99L))
                 .isInstanceOf(ProcesoReservaNoEncontradoException.class)
                 .hasMessage("No se encontró el proceso de reserva con id: 99");
+    }
+
+    @Test
+    void informarTelefonoDevuelveElProcesoCuandoExiste() {
+        ProcesoReserva proceso = ProcesoReserva.builder().id(1L).build();
+        when(informarTelefonoUseCase.informarTelefono("jtejada", 1L, "2615551234")).thenReturn(Optional.of(proceso));
+
+        assertThat(service.informarTelefono("jtejada", 1L, "2615551234")).isSameAs(proceso);
+    }
+
+    @Test
+    void informarTelefonoTiraExcepcionCuandoNoLoEncuentra() {
+        when(informarTelefonoUseCase.informarTelefono("jtejada", 99L, "2615551234")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.informarTelefono("jtejada", 99L, "2615551234"))
+                .isInstanceOf(ProcesoReservaNoEncontradoException.class);
     }
 }

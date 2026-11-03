@@ -94,6 +94,8 @@ stateDiagram-v2
     ESPERANDO_TELEFONO --> FALLIDO: la cátedra informa FAILED
     TELEFONO_ENVIADO --> FALLIDO: la cátedra informa FAILED
     TELEFONO_ENVIADO --> CONFIRMADO: AppointmentConfirmed
+    BLOQUEADO --> CONFIRMADO: la cátedra ya confirmó
+    ESPERANDO_TELEFONO --> CONFIRMADO: la cátedra ya confirmó
     INICIADO --> CANCELADO: abandono
     BLOQUEADO --> CANCELADO: abandono
     ESPERANDO_TELEFONO --> CANCELADO: abandono
@@ -105,7 +107,7 @@ stateDiagram-v2
     CANCELADO --> [*]
 ```
 
-`FALLIDO`, `VENCIDO`, `INVALIDO` y `CANCELADO` son **finales**: nada los modifica. `CONFIRMADO` solo puede pasar a `CANCELADO` (D-05).
+`FALLIDO`, `VENCIDO`, `INVALIDO` y `CANCELADO` son **finales**: nada los modifica. `CONFIRMADO` solo puede pasar a `CANCELADO` (D-05). `BLOQUEADO` y `ESPERANDO_TELEFONO` pueden pasar directo a `CONFIRMADO` cuando la cátedra ya confirmó la reserva y acá no se vio el paso intermedio: por ejemplo, un teléfono que dio timeout pero llegó (CU-05 10a), o un evento perdido que encuentra la reconciliación (CU-09).
 
 ## Decisiones del proyecto
 

@@ -18,6 +18,16 @@ public enum EstadoProceso {
         return siguientes().contains(nuevo);
     }
 
+    // Pendiente: el usuario todavía puede abandonarlo (CU-10).
+    public boolean esPendiente() {
+        return this == INICIADO || this == BLOQUEADO || this == ESPERANDO_TELEFONO || this == TELEFONO_ENVIADO;
+    }
+
+    // Solo una reserva confirmada se cancela (CU-08).
+    public boolean esCancelable() {
+        return this == CONFIRMADO;
+    }
+
     public boolean esFinal() {
         return siguientes().isEmpty();
     }

@@ -55,6 +55,25 @@ class EstadoProcesoTest {
         assertThat(estado.esFinal()).isFalse();
     }
 
+    @ParameterizedTest
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO", "TELEFONO_ENVIADO"})
+    void losPendientesSePuedenAbandonar(EstadoProceso estado) {
+        assertThat(estado.esPendiente()).isTrue();
+        assertThat(estado.esCancelable()).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"CONFIRMADO", "CANCELADO", "VENCIDO", "INVALIDO", "FALLIDO"})
+    void losDemasNoSonPendientes(EstadoProceso estado) {
+        assertThat(estado.esPendiente()).isFalse();
+    }
+
+    @Test
+    void soloElConfirmadoSePuedeCancelar() {
+        assertThat(Arrays.stream(EstadoProceso.values()).filter(EstadoProceso::esCancelable))
+                .containsExactly(EstadoProceso.CONFIRMADO);
+    }
+
     @Test
     void elDiagramaTieneDiecinueveTransiciones() {
         assertThat(transicionesValidas()).hasSize(VALIDAS.size());

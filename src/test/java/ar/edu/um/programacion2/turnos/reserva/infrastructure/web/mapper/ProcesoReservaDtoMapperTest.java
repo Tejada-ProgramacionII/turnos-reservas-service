@@ -33,6 +33,7 @@ class ProcesoReservaDtoMapperTest {
                 .mensajePedido("Ingrese un numero de telefono para continuar.")
                 .telefono("+5492615551234")
                 .motivo("motivo")
+                .canceladaEn(Instant.parse("2026-10-28T10:00:00Z"))
                 .estado(EstadoProceso.ESPERANDO_TELEFONO)
                 .build();
 

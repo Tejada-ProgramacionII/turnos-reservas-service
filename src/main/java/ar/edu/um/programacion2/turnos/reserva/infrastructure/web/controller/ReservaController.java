@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoNoDisponibleException;
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.OperacionNoPermitidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProfesionalNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaInvalidaException;
@@ -28,6 +30,7 @@ import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.CancelarReservaRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.IniciarReservaRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.ProcesoReservaResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.mapper.ProcesoReservaDtoMapper;
@@ -99,6 +102,32 @@ public class ReservaController {
         } catch (ProcesoReservaNoEncontradoException e) {
             return problema(HttpStatus.NOT_FOUND, e.getMessage());
         }
+    }
+
+    // CU-08: el cuerpo es opcional; sin motivo se usa uno por defecto.
+    @PostMapping("/{id}/cancelar")
+    public ResponseEntity<Object> cancelarReserva(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+            @Valid @RequestBody(required = false) CancelarReservaRequest request) {
+        String motivo = request != null ? request.getMotivo() : null;
+        try {
+            return ResponseEntity.ok(procesoReservaDtoMapper.toResponse(
+                    reservaService.cancelarReserva(jwt.getSubject(), id, motivo)));
+        } catch (ProcesoReservaNoEncontradoException e) {
+            return problema(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (OperacionNoPermitidaException e) {
+            return conflicto(e);
+        } catch (CatedraRechazoException e) {
+            return problema(HttpStatus.BAD_GATEWAY, "La cátedra rechazó la cancelación: la reserva sigue confirmada");
+        } catch (CatedraNoDisponibleException e) {
+            return problema(HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo confirmar la cancelación con la cátedra: la reserva sigue confirmada");
+        }
+    }
+
+    private static ResponseEntity<Object> conflicto(OperacionNoPermitidaException e) {
+        ProblemDetail detalle = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        detalle.setProperty("estado", e.getEstado().name());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(detalle);
     }
 
     private static ResponseEntity<Object> problema(HttpStatus status, String detalle) {

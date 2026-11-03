@@ -26,6 +26,7 @@ public class ProcesoReservaDtoMapper {
                 .expiresAt(proceso.getExpiresAt())
                 .mensajePedido(proceso.getMensajePedido())
                 .motivo(proceso.getMotivo())
+                .canceladaEn(proceso.getCanceladaEn())
                 .puedeAbandonar(estado != null && estado.esAbandonable())
                 .puedeCancelar(estado != null && estado.esCancelable())
                 .build();

@@ -1,7 +1,10 @@
-# Base de datos propia del servicio de turnos para desarrollo local.
-# Usa el puerto 5433 para poder levantarse junto con la base del catálogo (5432).
-# Los valores por defecto coinciden con application.properties y se pueden
-# sobrescribir con variables de entorno (DB_NAME, DB_USERNAME, DB_PASSWORD, DB_PORT).
+# Servicio de turnos con su base PostgreSQL. Los secretos llegan desde .env (copiar .env.example).
+# Los datos de la base se pueden sobrescribir con DB_NAME, DB_USERNAME, DB_PASSWORD y DB_PORT;
+# los valores por defecto coinciden con application.properties.
+# El nombre del proyecto es fijo para reutilizar el contenedor y el volumen de turnos-db
+# aunque se levante desde otra carpeta (por ejemplo, un worktree).
+name: turnos-reservas-service
+
 services:
   turnos-db:
     image: postgres:17
@@ -19,6 +22,32 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - turnos
+
+  turnos:
+    build: .
+    container_name: turnos
+    depends_on:
+      turnos-db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://turnos-db:5432/${DB_NAME:-turnos}
+      DB_USERNAME: ${DB_USERNAME:-turnos}
+      DB_PASSWORD: ${DB_PASSWORD:-turnos}
+    # Adentro escucha en el 8080; afuera en el 8081 para convivir con el catálogo.
+    ports:
+      - "8081:8080"
+    networks:
+      - turnos
+
+# Red propia fuera de 172.17.x, que es donde está la cátedra (ZeroTier).
+networks:
+  turnos:
+    ipam:
+      config:
+        - subnet: 10.21.0.0/24
 
 volumes:
   turnos-db-data:

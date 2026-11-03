@@ -40,3 +40,6 @@ HELP.md
 
 # macOS
 .DS_Store
+
+# Secretos de Docker Compose (ver .env.example)
+.env

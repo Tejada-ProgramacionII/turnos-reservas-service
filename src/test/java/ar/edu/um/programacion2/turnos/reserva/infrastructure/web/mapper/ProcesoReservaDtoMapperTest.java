@@ -56,6 +56,15 @@ class ProcesoReservaDtoMapperTest {
     }
 
     @Test
+    void toResponseConElTelefonoEnviadoNoPermiteAbandonar() {
+        ProcesoReservaResponse response = mapper.toResponse(
+                ProcesoReserva.builder().id(1L).estado(EstadoProceso.TELEFONO_ENVIADO).build());
+
+        assertThat(response.isPuedeAbandonar()).isFalse();
+        assertThat(response.isPuedeCancelar()).isFalse();
+    }
+
+    @Test
     void toResponseSinEstadoDejaElEstadoEnNull() {
         ProcesoReservaResponse response = mapper.toResponse(ProcesoReserva.builder().id(1L).build());
 

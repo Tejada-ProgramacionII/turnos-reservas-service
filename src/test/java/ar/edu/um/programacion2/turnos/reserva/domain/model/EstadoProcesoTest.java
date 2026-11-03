@@ -56,16 +56,16 @@ class EstadoProcesoTest {
     }
 
     @ParameterizedTest
-    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO", "TELEFONO_ENVIADO"})
-    void losPendientesSePuedenAbandonar(EstadoProceso estado) {
-        assertThat(estado.esPendiente()).isTrue();
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"})
+    void antesDeEnviarElTelefonoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isTrue();
         assertThat(estado.esCancelable()).isFalse();
     }
 
     @ParameterizedTest
-    @EnumSource(names = {"CONFIRMADO", "CANCELADO", "VENCIDO", "INVALIDO", "FALLIDO"})
-    void losDemasNoSonPendientes(EstadoProceso estado) {
-        assertThat(estado.esPendiente()).isFalse();
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"}, mode = EnumSource.Mode.EXCLUDE)
+    void conElTelefonoEnviadoOTerminadoNoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isFalse();
     }
 
     @Test

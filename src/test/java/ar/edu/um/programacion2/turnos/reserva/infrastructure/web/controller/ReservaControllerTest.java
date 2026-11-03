@@ -11,12 +11,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,6 +39,7 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaInval
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRechazadaException;
 import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.mapper.ProcesoReservaDtoMapper;
 
@@ -181,6 +184,52 @@ class ReservaControllerTest {
         mockMvc.perform(get(URL + "/2"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("No se encontró el proceso de reserva con id: 2"));
+    }
+
+    @Test
+    void getMisReservasDevuelveLaPaginaConElTotal() throws Exception {
+        ProcesoReserva confirmado = proceso(EstadoProceso.CONFIRMADO);
+        confirmado.setReservationProcessId("process-1");
+        confirmado.setTelefono("+5490000000000");
+        when(reservaService.getMisReservas(LOGIN, EstadoProceso.CONFIRMADO, 1, 5)).thenReturn(
+                Pagina.<ProcesoReserva>builder().contenido(List.of(confirmado)).total(6).build());
+
+        mockMvc.perform(get(URL).param("estado", "CONFIRMADO").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "6"))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].estado").value("CONFIRMADO"))
+                .andExpect(jsonPath("$[0].puedeCancelar").value(true))
+                .andExpect(jsonPath("$[0].puedeAbandonar").value(false))
+                .andExpect(jsonPath("$[0].telefono").doesNotExist())
+                .andExpect(jsonPath("$[0].holdId").doesNotExist())
+                .andExpect(jsonPath("$[0].reservationProcessId").doesNotExist());
+    }
+
+    @Test
+    void getMisReservasSinParametrosUsaLaPrimeraPaginaDeVeinte() throws Exception {
+        when(reservaService.getMisReservas(LOGIN, null, 0, 20)).thenReturn(
+                Pagina.<ProcesoReserva>builder().contenido(List.of()).total(0).build());
+
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "0"))
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"-1, 20", "0, 0", "0, 101"})
+    void getMisReservasConPaginacionInvalidaDevuelve400(int page, int size) throws Exception {
+        mockMvc.perform(get(URL).param("page", String.valueOf(page)).param("size", String.valueOf(size)))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void getMisReservasConUnEstadoInexistenteDevuelve400() throws Exception {
+        mockMvc.perform(get(URL).param("estado", "PERDIDO"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
     }
 
     private static ProcesoReserva proceso(EstadoProceso estado) {

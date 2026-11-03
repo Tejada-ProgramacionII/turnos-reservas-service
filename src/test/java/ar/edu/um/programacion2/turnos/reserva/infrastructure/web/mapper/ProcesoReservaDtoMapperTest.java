@@ -39,14 +39,29 @@ class ProcesoReservaDtoMapperTest {
         ProcesoReservaResponse response = mapper.toResponse(proceso);
 
         assertThat(response).usingRecursiveComparison()
-                .ignoringFields("estado")
+                .ignoringFields("estado", "puedeAbandonar", "puedeCancelar")
                 .isEqualTo(proceso);
         assertThat(response.getEstado()).isEqualTo("ESPERANDO_TELEFONO");
+        assertThat(response.isPuedeAbandonar()).isTrue();
+        assertThat(response.isPuedeCancelar()).isFalse();
+    }
+
+    @Test
+    void toResponseDeUnaReservaConfirmadaPermiteCancelarla() {
+        ProcesoReservaResponse response = mapper.toResponse(
+                ProcesoReserva.builder().id(1L).estado(EstadoProceso.CONFIRMADO).build());
+
+        assertThat(response.isPuedeCancelar()).isTrue();
+        assertThat(response.isPuedeAbandonar()).isFalse();
     }
 
     @Test
     void toResponseSinEstadoDejaElEstadoEnNull() {
-        assertThat(mapper.toResponse(ProcesoReserva.builder().id(1L).build()).getEstado()).isNull();
+        ProcesoReservaResponse response = mapper.toResponse(ProcesoReserva.builder().id(1L).build());
+
+        assertThat(response.getEstado()).isNull();
+        assertThat(response.isPuedeAbandonar()).isFalse();
+        assertThat(response.isPuedeCancelar()).isFalse();
     }
 
     @Test

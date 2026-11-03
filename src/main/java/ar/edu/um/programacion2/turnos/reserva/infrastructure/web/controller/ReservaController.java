@@ -99,6 +99,18 @@ public class ReservaController {
         }
     }
 
+    @PostMapping("/{id}/abandonar")
+    public ResponseEntity<Object> abandonarProceso(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(procesoReservaDtoMapper.toResponse(
+                    reservaService.abandonarProceso(jwt.getSubject(), id)));
+        } catch (ProcesoReservaNoEncontradoException e) {
+            return problema(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (OperacionNoPermitidaException e) {
+            return conflicto(e);
+        }
+    }
+
     private static ResponseEntity<Object> conflicto(OperacionNoPermitidaException e) {
         ProblemDetail detalle = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
         detalle.setProperty("estado", e.getEstado().name());

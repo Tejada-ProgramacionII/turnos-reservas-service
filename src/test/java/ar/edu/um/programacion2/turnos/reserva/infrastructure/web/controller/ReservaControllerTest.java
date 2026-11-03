@@ -247,6 +247,37 @@ class ReservaControllerTest {
                 .andExpect(jsonPath("$.detail").value("No se pudo enviar el teléfono: probá de nuevo"));
     }
 
+    @Test
+    void abandonarProcesoDevuelve200ConElProcesoCancelado() throws Exception {
+        ProcesoReserva cancelado = proceso(EstadoProceso.CANCELADO);
+        cancelado.setMotivo("Abandonado por el usuario");
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenReturn(cancelado);
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivo").value("Abandonado por el usuario"));
+    }
+
+    @Test
+    void abandonarProcesoAjenoOInexistenteDevuelve404() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 2L)).thenThrow(new ProcesoReservaNoEncontradoException(2L));
+
+        mockMvc.perform(post(URL + "/2/abandonar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void abandonarProcesoConfirmadoDevuelve409ConElEstado() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenThrow(new OperacionNoPermitidaException(
+                "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)", EstadoProceso.CONFIRMADO));
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("El turno ya está confirmado: usá la cancelación de la reserva (CU-08)"))
+                .andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+    }
+
     private static ProcesoReserva proceso(EstadoProceso estado) {
         return ProcesoReserva.builder()
                 .id(1L)

@@ -54,6 +54,7 @@ class ProcesarEventoReservaUseCaseImplTest {
     @CsvSource({
             "INFORMACION_SOLICITADA, BLOQUEADO",
             "TURNO_CONFIRMADO, TELEFONO_ENVIADO",
+            "TURNO_CONFIRMADO, ESPERANDO_TELEFONO",
             "INFORMACION_RECHAZADA, TELEFONO_ENVIADO",
             "PROCESO_VENCIDO, ESPERANDO_TELEFONO",
             "PROCESO_INVALIDO, TELEFONO_ENVIADO",
@@ -154,7 +155,7 @@ class ProcesarEventoReservaUseCaseImplTest {
 
     @ParameterizedTest(name = "{0} con el proceso en {1}")
     @CsvSource({
-            "TURNO_CONFIRMADO, ESPERANDO_TELEFONO",       // transición que no está en el diagrama
+            "INFORMACION_SOLICITADA, CONFIRMADO",         // transición que no está en el diagrama
             "INFORMACION_RECHAZADA, CONFIRMADO",          // retrocedería un proceso confirmado
             "PROCESO_VENCIDO, CANCELADO",                 // el proceso ya es final
             "TURNO_CANCELADO, CANCELADO",                 // mismo resultado que ya llegó por REST

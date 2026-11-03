@@ -37,16 +37,16 @@ Quedan en `http://localhost:8080` (catálogo) y `http://localhost:8081` (turnos)
 
 La imagen se compila en dos etapas (JDK para compilar, solo el JRE para correr) y corre con un usuario sin privilegios. Los tests no corren en el build de la imagen: los corre el CI. Las redes (`10.21.0.0/24` y `10.22.0.0/24` en el integrado) quedan fuera de la `172.17.x` de la cátedra.
 
-### Limitación conocida: Docker Desktop en macOS con ZeroTier
+### Red de la cátedra en macOS: relay local
 
-En macOS los contenedores no llegan a la cátedra por ZeroTier (`172.17.201.1`): el servicio arranca y atiende lo que no depende de ella (registro, login, consultas locales), pero las llamadas a la cátedra fallan y Kafka queda reintentando la conexión. Mientras tanto, se puede levantar solo la base con Docker y correr el servicio en el host:
+En macOS con Docker Desktop, los contenedores no enrutan por la interfaz de ZeroTier (macOS devuelve `no route to host`). Se resuelve con un relay local en el host, sin cambiar el código ni el `.env`. En Linux no es necesario.
 
-```bash
-docker compose up -d turnos-db
-set -a && source .env && set +a && SERVER_PORT=8081 ./mvnw spring-boot:run
-```
+El relay hace dos cosas:
 
-En macOS con Docker Desktop, los contenedores no enrutan por la interfaz de ZeroTier (macOS devuelve no route to host); hace falta un relay local en el host hacia 172.17.201.1 (puertos 8090, 6379, 9094). En Linux no es necesario.
+- `socat` escucha en `127.0.0.1` y reenvía a `172.17.201.1`, en los puertos 8090 (REST), 6379 (Redis) y 9094 (Kafka).
+- Una regla DNAT en la VM de Docker manda el tráfico hacia `172.17.201.1` a `host.docker.internal`, es decir, al `socat` del host.
+
+Hay que correrlo **antes del `docker compose up`** y **otra vez después de reiniciar Docker Desktop**, porque la regla DNAT se pierde.
 
 ## Base de datos y migraciones
 

@@ -48,4 +48,6 @@
   export CATEDRA_GROUP_ID=<groupId>
   ```
 
+- `RECONCILIACION_INTERVALO` (opcional, 1 minuto por defecto, por ejemplo `30s` o `5m`): cada cuánto turnos reconcilia sus procesos pendientes con la cátedra (CU-09). También lo hace al arrancar.
+
 - Los tests no necesitan estas variables: usan valores de prueba propios en `src/test/resources/application.properties`.

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
+import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetMisReservasUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetProcesoReservaUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.IniciarReservaUseCase;
 
@@ -27,6 +31,9 @@ class ReservaServiceTest {
 
     @Mock
     private GetProcesoReservaUseCase getProcesoReservaUseCase;
+
+    @Mock
+    private GetMisReservasUseCase getMisReservasUseCase;
 
     @InjectMocks
     private ReservaService service;
@@ -56,5 +63,13 @@ class ReservaServiceTest {
         assertThatThrownBy(() -> service.getProcesoReserva("jtejada", 99L))
                 .isInstanceOf(ProcesoReservaNoEncontradoException.class)
                 .hasMessage("No se encontró el proceso de reserva con id: 99");
+    }
+
+    @Test
+    void getMisReservasDelegaEnElCasoDeUso() {
+        Pagina<ProcesoReserva> pagina = Pagina.<ProcesoReserva>builder().contenido(List.of()).total(0).build();
+        when(getMisReservasUseCase.getMisReservas("jtejada", EstadoProceso.CONFIRMADO, 1, 10)).thenReturn(pagina);
+
+        assertThat(service.getMisReservas("jtejada", EstadoProceso.CONFIRMADO, 1, 10)).isSameAs(pagina);
     }
 }

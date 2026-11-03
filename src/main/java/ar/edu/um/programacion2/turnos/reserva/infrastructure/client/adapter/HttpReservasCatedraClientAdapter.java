@@ -14,10 +14,12 @@ import org.springframework.web.client.RestClientException;
 
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCancelada;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ReservasCatedraClient;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.CancelacionCatedraResponse;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ConfirmacionHoldCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ErrorCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.HoldCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.mapper.ReservaClientMapper;
@@ -28,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class HttpReservasCatedraClientAdapter implements ReservasCatedraClient {
 
     private static final String HOLDS_PATH = "/api/appointment-holds";
+    private static final String CONFIRMAR_PATH = "/api/appointment-holds/{holdId}/confirm";
     private static final String CANCELAR_PATH = "/api/appointments/{reservationProcessId}/cancel";
 
     private final RestClient catedraRestClient;
@@ -43,6 +46,19 @@ public class HttpReservasCatedraClientAdapter implements ReservasCatedraClient {
                     .retrieve()
                     .body(HoldCatedraResponse.class);
             return reservaClientMapper.toHoldCreado(response);
+        });
+    }
+
+    @Override
+    public HoldConfirmado confirmarHold(String holdId, String externalPatientId, String nombre, String apellido) {
+        return llamarALaCatedra("confirmar el hold", () -> {
+            ConfirmacionHoldCatedraResponse response = catedraRestClient.post()
+                    .uri(CONFIRMAR_PATH, holdId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(reservaClientMapper.toConfirmacionRequest(externalPatientId, nombre, apellido))
+                    .retrieve()
+                    .body(ConfirmacionHoldCatedraResponse.class);
+            return reservaClientMapper.toHoldConfirmado(response);
         });
     }
 

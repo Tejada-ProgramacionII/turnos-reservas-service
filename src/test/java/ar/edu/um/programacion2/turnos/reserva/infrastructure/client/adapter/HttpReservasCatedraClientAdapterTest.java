@@ -29,6 +29,7 @@ import ar.edu.um.programacion2.turnos.config.CatedraClientConfig;
 import ar.edu.um.programacion2.turnos.config.CatedraProperties;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCancelada;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.mapper.ReservaClientMapper;
@@ -39,12 +40,20 @@ class HttpReservasCatedraClientAdapterTest {
     private static final LocalDate FECHA = LocalDate.of(2026, 9, 14);
     private static final LocalTime HORA = LocalTime.of(9, 30);
 
-    // Ejemplos de las secciones 9, 12 y 13 del contrato.
+    // Ejemplos de las secciones 9, 10, 12 y 13 del contrato.
     private static final String HOLD_JSON = """
             {
               "holdId": "hold-6c0c2f41",
               "reservationProcessId": "process-a92b47d0",
               "status": "HELD",
+              "expiresAt": "2026-09-10T14:44:50Z"
+            }
+            """;
+
+    private static final String CONFIRMACION_JSON = """
+            {
+              "reservationProcessId": "process-a92b47d0",
+              "status": "WAITING_FOR_PHONE",
               "expiresAt": "2026-09-10T14:44:50Z"
             }
             """;
@@ -121,6 +130,35 @@ class HttpReservasCatedraClientAdapterTest {
         assertThat(hold.getHoldId()).isEqualTo("hold-6c0c2f41");
         assertThat(hold.getReservationProcessId()).isEqualTo("process-a92b47d0");
         assertThat(hold.getVenceEn()).isEqualTo(Instant.parse("2026-09-10T14:44:50Z"));
+    }
+
+    @Test
+    void confirmarHoldMandaElPacienteYTraduceLaRespuesta() {
+        responder(202, CONFIRMACION_JSON);
+
+        HoldConfirmado confirmado = crearAdapter(servidor.getAddress().getPort())
+                .confirmarHold("hold-6c0c2f41", "user-42", "Juan", "Perez");
+
+        assertThat(metodoRecibido.get()).isEqualTo("POST");
+        assertThat(pathRecibido.get()).isEqualTo("/api/appointment-holds/hold-6c0c2f41/confirm");
+        assertThat(cuerpoRecibido.get())
+                .contains("\"externalPatientId\":\"user-42\"")
+                .contains("\"patientFirstName\":\"Juan\"")
+                .contains("\"patientLastName\":\"Perez\"");
+        assertThat(confirmado.getReservationProcessId()).isEqualTo("process-a92b47d0");
+        assertThat(confirmado.getVenceEn()).isEqualTo(Instant.parse("2026-09-10T14:44:50Z"));
+    }
+
+    @Test
+    void confirmarHoldLanzaRechazoConElCodeDelCuerpoDeError() {
+        responder(404, SLOT_ALREADY_HELD_JSON.replace("SLOT_ALREADY_HELD", "HOLD_EXPIRED").replace("409", "404"));
+        tipoRespuesta.set(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        HttpReservasCatedraClientAdapter adapter = crearAdapter(servidor.getAddress().getPort());
+
+        assertThatThrownBy(() -> adapter.confirmarHold("hold-6c0c2f41", "user-42", "Juan", "Perez"))
+                .isInstanceOfSatisfying(CatedraRechazoException.class,
+                        e -> assertThat(e.getCodigo()).isEqualTo("HOLD_EXPIRED"))
+                .hasMessageContaining("confirmar el hold");
     }
 
     @Test

@@ -7,7 +7,9 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,5 +95,23 @@ class JpaProcesoReservaRepositoryAdapterTest {
         when(jpaProcesoReservaRepository.findByReservationProcessId("process-x")).thenReturn(Optional.empty());
 
         assertThat(adapter.findByReservationProcessId("process-x")).isEmpty();
+    }
+
+    @Test
+    void findByEstadosDevuelveLosProcesosDeEsosEstados() {
+        Set<EstadoProceso> estados = Set.of(EstadoProceso.INICIADO, EstadoProceso.BLOQUEADO);
+        when(jpaProcesoReservaRepository.findByEstadoIn(estados)).thenReturn(List.of(
+                ProcesoReservaEntity.builder().id(1L).estado(EstadoProceso.BLOQUEADO).build()));
+
+        assertThat(adapter.findByEstados(estados)).extracting(ProcesoReserva::getId).containsExactly(1L);
+    }
+
+    @Test
+    void findConfirmadosDesdeDevuelveLosConfirmadosDeEsaFechaEnAdelante() {
+        LocalDate hoy = LocalDate.of(2026, 11, 3);
+        when(jpaProcesoReservaRepository.findByEstadoAndFechaGreaterThanEqual(EstadoProceso.CONFIRMADO, hoy))
+                .thenReturn(List.of(ProcesoReservaEntity.builder().id(5L).estado(EstadoProceso.CONFIRMADO).build()));
+
+        assertThat(adapter.findConfirmadosDesde(hoy)).extracting(ProcesoReserva::getId).containsExactly(5L);
     }
 }

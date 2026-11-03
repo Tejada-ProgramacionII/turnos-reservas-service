@@ -33,6 +33,7 @@ public class ProcesoReserva {
     private String telefono;
     private Long reservationId;
     private String motivo;
+    private Instant canceladaEn;
     private EstadoProceso estado;
     private Instant creadoEn;
     private Instant actualizadoEn;

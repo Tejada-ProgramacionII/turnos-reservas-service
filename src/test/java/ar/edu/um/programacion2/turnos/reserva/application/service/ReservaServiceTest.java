@@ -19,9 +19,11 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReser
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
+import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.AbandonarProcesoUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.CancelarReservaUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetMisReservasUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.GetProcesoReservaUseCase;
+import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.InformarTelefonoUseCase;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.in.IniciarReservaUseCase;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +40,12 @@ class ReservaServiceTest {
 
     @Mock
     private CancelarReservaUseCase cancelarReservaUseCase;
+
+    @Mock
+    private InformarTelefonoUseCase informarTelefonoUseCase;
+
+    @Mock
+    private AbandonarProcesoUseCase abandonarProcesoUseCase;
 
     @InjectMocks
     private ReservaService service;
@@ -90,6 +98,38 @@ class ReservaServiceTest {
         when(cancelarReservaUseCase.cancelarReserva("jtejada", 99L, null)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.cancelarReserva("jtejada", 99L, null))
+                .isInstanceOf(ProcesoReservaNoEncontradoException.class);
+    }
+
+    @Test
+    void informarTelefonoDevuelveElProcesoCuandoExiste() {
+        ProcesoReserva proceso = ProcesoReserva.builder().id(1L).build();
+        when(informarTelefonoUseCase.informarTelefono("jtejada", 1L, "2615551234")).thenReturn(Optional.of(proceso));
+
+        assertThat(service.informarTelefono("jtejada", 1L, "2615551234")).isSameAs(proceso);
+    }
+
+    @Test
+    void informarTelefonoTiraExcepcionCuandoNoLoEncuentra() {
+        when(informarTelefonoUseCase.informarTelefono("jtejada", 99L, "2615551234")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.informarTelefono("jtejada", 99L, "2615551234"))
+                .isInstanceOf(ProcesoReservaNoEncontradoException.class);
+    }
+
+    @Test
+    void abandonarProcesoDevuelveElProcesoCuandoExiste() {
+        ProcesoReserva proceso = ProcesoReserva.builder().id(1L).build();
+        when(abandonarProcesoUseCase.abandonarProceso("jtejada", 1L)).thenReturn(Optional.of(proceso));
+
+        assertThat(service.abandonarProceso("jtejada", 1L)).isSameAs(proceso);
+    }
+
+    @Test
+    void abandonarProcesoTiraExcepcionCuandoNoLoEncuentra() {
+        when(abandonarProcesoUseCase.abandonarProceso("jtejada", 99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.abandonarProceso("jtejada", 99L))
                 .isInstanceOf(ProcesoReservaNoEncontradoException.class);
     }
 }

@@ -7,16 +7,21 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoReservaCatedra;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCancelada;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCatedra;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.CancelacionCatedraRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.CancelacionCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ConfirmacionHoldCatedraRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ConfirmacionHoldCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.HoldCatedraRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.HoldCatedraResponse;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ReservaCatedraResponse;
 
 class ReservaClientMapperTest {
 
@@ -100,5 +105,28 @@ class ReservaClientMapperTest {
         assertThat(mapper.toHoldCreado(null)).isNull();
         assertThat(mapper.toHoldConfirmado(null)).isNull();
         assertThat(mapper.toReservaCancelada(null)).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"PHONE_PENDING, TELEFONO_PENDIENTE", "CONFIRMED, CONFIRMADA", "CANCELLED, CANCELADA", "FAILED, FALLIDA"})
+    void toReservaCatedraTraduceElStatus(String status, EstadoReservaCatedra estado) {
+        ReservaCatedra reserva = mapper.toReservaCatedra(ReservaCatedraResponse.builder()
+                .reservationId(8251L).reservationProcessId("process-a92b47d0").status(status).build());
+
+        assertThat(reserva.getReservationId()).isEqualTo(8251L);
+        assertThat(reserva.getReservationProcessId()).isEqualTo("process-a92b47d0");
+        assertThat(reserva.getEstado()).isEqualTo(estado);
+    }
+
+    @Test
+    void toReservaCatedraDejaEnNullUnStatusDesconocidoOFaltante() {
+        assertThat(mapper.toReservaCatedra(ReservaCatedraResponse.builder().status("ARCHIVED").build()).getEstado())
+                .isNull();
+        assertThat(mapper.toReservaCatedra(ReservaCatedraResponse.builder().build()).getEstado()).isNull();
+    }
+
+    @Test
+    void toReservaCatedraDevuelveNullSiLaRespuestaEsNull() {
+        assertThat(mapper.toReservaCatedra(null)).isNull();
     }
 }

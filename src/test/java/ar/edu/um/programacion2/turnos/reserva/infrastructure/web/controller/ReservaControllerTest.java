@@ -34,11 +34,13 @@ import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.Catal
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.MensajeriaNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.OperacionNoPermitidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProfesionalNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaInvalidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRechazadaException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.TelefonoInvalidoException;
 import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
@@ -54,6 +56,11 @@ class ReservaControllerTest {
     private static final LocalTime HORA = LocalTime.of(9, 30);
     private static final String CUERPO = """
             {"profesionalId": 201, "fecha": "2026-11-02", "horaInicio": "09:30"}
+            """;
+    private static final String URL_TELEFONO = URL + "/1/telefono";
+    private static final String TELEFONO = "+54 9 261 555-1234";
+    private static final String CUERPO_TELEFONO = """
+            {"telefono": "+54 9 261 555-1234"}
             """;
 
     @Mock
@@ -307,6 +314,93 @@ class ReservaControllerTest {
                         "No se pudo confirmar la cancelación con la cátedra: la reserva sigue confirmada"));
     }
 
+    @Test
+    void informarTelefonoDevuelve202ConElProcesoEnTelefonoEnviado() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenReturn(proceso(EstadoProceso.TELEFONO_ENVIADO));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.estado").value("TELEFONO_ENVIADO"))
+                .andExpect(jsonPath("$.telefono").doesNotExist());
+    }
+
+    @Test
+    void informarTelefonoVacioDevuelve400() throws Exception {
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content("{\"telefono\": \" \"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void informarTelefonoInvalidoDevuelve400ConElFormato() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO))
+                .thenThrow(new TelefonoInvalidoException("El teléfono tiene que tener de 7 a 15 dígitos"));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("El teléfono tiene que tener de 7 a 15 dígitos"));
+    }
+
+    @Test
+    void informarTelefonoAjenoOInexistenteDevuelve404() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenThrow(new ProcesoReservaNoEncontradoException(1L));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void informarTelefonoEnUnEstadoQueNoLoAdmiteDevuelve409ConElEstado() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenThrow(new OperacionNoPermitidaException(
+                "Todavía no se puede informar el teléfono: la cátedra no lo pidió", EstadoProceso.BLOQUEADO));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Todavía no se puede informar el teléfono: la cátedra no lo pidió"))
+                .andExpect(jsonPath("$.estado").value("BLOQUEADO"));
+    }
+
+    @Test
+    void informarTelefonoSinKafkaDevuelve503() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO))
+                .thenThrow(new MensajeriaNoDisponibleException("sin broker", null));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value("No se pudo enviar el teléfono: probá de nuevo"));
+    }
+
+    @Test
+    void abandonarProcesoDevuelve200ConElProcesoCancelado() throws Exception {
+        ProcesoReserva cancelado = proceso(EstadoProceso.CANCELADO);
+        cancelado.setMotivo("Abandonado por el usuario");
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenReturn(cancelado);
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivo").value("Abandonado por el usuario"));
+    }
+
+    @Test
+    void abandonarProcesoAjenoOInexistenteDevuelve404() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 2L)).thenThrow(new ProcesoReservaNoEncontradoException(2L));
+
+        mockMvc.perform(post(URL + "/2/abandonar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void abandonarProcesoConfirmadoDevuelve409ConElEstado() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenThrow(new OperacionNoPermitidaException(
+                "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)", EstadoProceso.CONFIRMADO));
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("El turno ya está confirmado: usá la cancelación de la reserva (CU-08)"))
+                .andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+    }
+
     private static ProcesoReserva proceso(EstadoProceso estado) {
         return ProcesoReserva.builder()
                 .id(1L)
@@ -316,6 +410,7 @@ class ReservaControllerTest {
                 .horaInicio(HORA)
                 .horaFin(LocalTime.of(10, 0))
                 .holdId("hold-1")
+                .telefono("+5492615551234")
                 .expiresAt(Instant.parse("2026-10-27T18:10:00Z"))
                 .estado(estado)
                 .build();

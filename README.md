@@ -41,4 +41,13 @@
   export KAFKA_GRUPO=alumnos-<groupId>-turnos
   ```
 
+- `KAFKA_TOPIC_TELEFONO` y `CATEDRA_GROUP_ID` (obligatorias): topic por el que turnos le manda el teléfono a la cátedra (`catedra.turnos.telefono.<groupId>`) y `groupId` del proyecto, que viaja dentro del evento. Si falta alguna, el servicio no arranca. El tiempo máximo para que Kafka confirme el envío es 15 s y se puede cambiar con `KAFKA_TIMEOUT_ENVIO`:
+
+  ```bash
+  export KAFKA_TOPIC_TELEFONO=catedra.turnos.telefono.<groupId>
+  export CATEDRA_GROUP_ID=<groupId>
+  ```
+
+- `RECONCILIACION_INTERVALO` (opcional, 1 minuto por defecto, por ejemplo `30s` o `5m`): cada cuánto turnos reconcilia sus procesos pendientes con la cátedra (CU-09). También lo hace al arrancar.
+
 - Los tests no necesitan estas variables: usan valores de prueba propios en `src/test/resources/application.properties`.

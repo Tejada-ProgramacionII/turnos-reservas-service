@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -424,6 +425,22 @@ class IniciarReservaUseCaseImplTest {
         @Override
         public Pagina<ProcesoReserva> findByUsuarioId(Long usuarioId, EstadoProceso estado, int pagina, int tamanio) {
             throw new UnsupportedOperationException("CU-04 no lista procesos");
+        }
+
+        @Override
+        public List<ProcesoReserva> findByEstados(Set<EstadoProceso> estados) {
+            return procesos.values().stream()
+                    .filter(proceso -> estados.contains(proceso.getEstado()))
+                    .map(RepositorioEnMemoria::copiar)
+                    .toList();
+        }
+
+        @Override
+        public List<ProcesoReserva> findConfirmadosDesde(LocalDate fecha) {
+            return procesos.values().stream()
+                    .filter(proceso -> proceso.getEstado() == EstadoProceso.CONFIRMADO && !proceso.getFecha().isBefore(fecha))
+                    .map(RepositorioEnMemoria::copiar)
+                    .toList();
         }
 
         // Simula al consumidor de Kafka guardando el pedido de teléfono por su cuenta.

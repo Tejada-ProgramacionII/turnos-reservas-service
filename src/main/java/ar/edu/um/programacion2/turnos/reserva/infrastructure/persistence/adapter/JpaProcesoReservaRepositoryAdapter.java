@@ -1,6 +1,9 @@
 package ar.edu.um.programacion2.turnos.reserva.infrastructure.persistence.adapter;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,5 +56,19 @@ public class JpaProcesoReservaRepositoryAdapter implements ProcesoReservaReposit
                 .contenido(resultado.map(procesoReservaMapper::toDomainModel).getContent())
                 .total(resultado.getTotalElements())
                 .build();
+    }
+
+    @Override
+    public List<ProcesoReserva> findByEstados(Set<EstadoProceso> estados) {
+        return jpaProcesoReservaRepository.findByEstadoIn(estados).stream()
+                .map(procesoReservaMapper::toDomainModel)
+                .toList();
+    }
+
+    @Override
+    public List<ProcesoReserva> findConfirmadosDesde(LocalDate fecha) {
+        return jpaProcesoReservaRepository.findByEstadoAndFechaGreaterThanEqual(EstadoProceso.CONFIRMADO, fecha).stream()
+                .map(procesoReservaMapper::toDomainModel)
+                .toList();
     }
 }

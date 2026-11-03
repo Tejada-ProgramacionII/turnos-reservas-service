@@ -21,16 +21,19 @@ import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.Catal
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.MensajeriaNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.OperacionNoPermitidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProfesionalNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaInvalidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRechazadaException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.TelefonoInvalidoException;
 import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.CancelarReservaRequest;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.InformarTelefonoRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.IniciarReservaRequest;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.dto.ProcesoReservaResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.mapper.ProcesoReservaDtoMapper;
@@ -121,6 +124,36 @@ public class ReservaController {
         } catch (CatedraNoDisponibleException e) {
             return problema(HttpStatus.SERVICE_UNAVAILABLE,
                     "No se pudo confirmar la cancelación con la cátedra: la reserva sigue confirmada");
+        }
+    }
+
+    // 202: el teléfono salió hacia la cátedra y el resultado llega después por Kafka (CU-06).
+    @PostMapping("/{id}/telefono")
+    public ResponseEntity<Object> informarTelefono(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+            @Valid @RequestBody InformarTelefonoRequest request) {
+        try {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(procesoReservaDtoMapper.toResponse(
+                    reservaService.informarTelefono(jwt.getSubject(), id, request.getTelefono())));
+        } catch (ProcesoReservaNoEncontradoException e) {
+            return problema(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (TelefonoInvalidoException e) {
+            return problema(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (OperacionNoPermitidaException e) {
+            return conflicto(e);
+        } catch (MensajeriaNoDisponibleException e) {
+            return problema(HttpStatus.SERVICE_UNAVAILABLE, "No se pudo enviar el teléfono: probá de nuevo");
+        }
+    }
+
+    @PostMapping("/{id}/abandonar")
+    public ResponseEntity<Object> abandonarProceso(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(procesoReservaDtoMapper.toResponse(
+                    reservaService.abandonarProceso(jwt.getSubject(), id)));
+        } catch (ProcesoReservaNoEncontradoException e) {
+            return problema(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (OperacionNoPermitidaException e) {
+            return conflicto(e);
         }
     }
 

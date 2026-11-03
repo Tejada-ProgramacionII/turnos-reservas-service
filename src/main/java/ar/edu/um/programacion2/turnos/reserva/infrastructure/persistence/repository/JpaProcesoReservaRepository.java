@@ -1,5 +1,8 @@
 package ar.edu.um.programacion2.turnos.reserva.infrastructure.persistence.repository;
 
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -17,4 +20,8 @@ public interface JpaProcesoReservaRepository extends JpaRepository<ProcesoReserv
     Page<ProcesoReservaEntity> findByUsuarioId(Long usuarioId, Pageable pageable);
 
     Page<ProcesoReservaEntity> findByUsuarioIdAndEstado(Long usuarioId, EstadoProceso estado, Pageable pageable);
+
+    List<ProcesoReservaEntity> findByEstadoIn(Collection<EstadoProceso> estados);
+
+    List<ProcesoReservaEntity> findByEstadoAndFechaGreaterThanEqual(EstadoProceso estado, LocalDate fecha);
 }

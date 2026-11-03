@@ -2,6 +2,9 @@ package ar.edu.um.programacion2.turnos.reserva.infrastructure.client.adapter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.springframework.http.MediaType;
@@ -17,11 +20,13 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRecha
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCancelada;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCatedra;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ReservasCatedraClient;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.CancelacionCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ConfirmacionHoldCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ErrorCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.HoldCatedraResponse;
+import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.dto.ReservaCatedraResponse;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.mapper.ReservaClientMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +37,9 @@ public class HttpReservasCatedraClientAdapter implements ReservasCatedraClient {
     private static final String HOLDS_PATH = "/api/appointment-holds";
     private static final String CONFIRMAR_PATH = "/api/appointment-holds/{holdId}/confirm";
     private static final String CANCELAR_PATH = "/api/appointments/{reservationProcessId}/cancel";
+    private static final String RESERVAS_PATH = "/api/appointments";
+    static final int TAMANO_PAGINA = 100;
+    static final int MAXIMO_PAGINAS = 10;
 
     private final RestClient catedraRestClient;
     private final ReservaClientMapper reservaClientMapper;
@@ -73,6 +81,39 @@ public class HttpReservasCatedraClientAdapter implements ReservasCatedraClient {
                     .body(CancelacionCatedraResponse.class);
             return reservaClientMapper.toReservaCancelada(response);
         });
+    }
+
+    // Sin from/to: con esos filtros la cátedra responde 500. Se pide página por página hasta una incompleta.
+    @Override
+    public List<ReservaCatedra> listarReservas(String externalPatientId) {
+        return llamarALaCatedra("listar las reservas", () -> {
+            List<ReservaCatedra> reservas = new ArrayList<>();
+            for (int pagina = 0; pagina < MAXIMO_PAGINAS; pagina++) {
+                ReservaCatedraResponse[] respuesta = pedirPagina(externalPatientId, pagina);
+                if (respuesta == null) {
+                    break;
+                }
+                for (ReservaCatedraResponse reserva : respuesta) {
+                    reservas.add(reservaClientMapper.toReservaCatedra(reserva));
+                }
+                if (respuesta.length < TAMANO_PAGINA) {
+                    break;
+                }
+            }
+            reservas.removeIf(Objects::isNull);
+            return reservas;
+        });
+    }
+
+    private ReservaCatedraResponse[] pedirPagina(String externalPatientId, int pagina) {
+        return catedraRestClient.get()
+                .uri(uri -> uri.path(RESERVAS_PATH)
+                        .queryParam("externalPatientId", externalPatientId)
+                        .queryParam("page", pagina)
+                        .queryParam("size", TAMANO_PAGINA)
+                        .build())
+                .retrieve()
+                .body(ReservaCatedraResponse[].class);
     }
 
     // La sección 13 del contrato pide decidir por status y code, nunca por el detail.

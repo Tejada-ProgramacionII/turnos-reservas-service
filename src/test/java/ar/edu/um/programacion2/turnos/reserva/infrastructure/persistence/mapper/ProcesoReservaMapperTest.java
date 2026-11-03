@@ -37,6 +37,7 @@ class ProcesoReservaMapperTest {
                 .telefono("+5492615551234")
                 .reservationId(8251L)
                 .motivo("abandonado por el usuario")
+                .canceladaEn(CREADO.plusSeconds(120))
                 .estado(EstadoProceso.TELEFONO_ENVIADO)
                 .creadoEn(CREADO)
                 .actualizadoEn(CREADO.plusSeconds(60))
@@ -60,7 +61,8 @@ class ProcesoReservaMapperTest {
                 .reservationProcessId("process-1")
                 .expiresAt(CREADO.plusSeconds(600))
                 .reservationId(10L)
-                .estado(EstadoProceso.CONFIRMADO)
+                .canceladaEn(CREADO.plusSeconds(120))
+                .estado(EstadoProceso.CANCELADO)
                 .creadoEn(CREADO)
                 .actualizadoEn(CREADO)
                 .build();

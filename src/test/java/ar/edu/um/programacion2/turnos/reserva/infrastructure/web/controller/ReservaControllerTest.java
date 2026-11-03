@@ -32,6 +32,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoNoDisponibleException;
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.MensajeriaNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.OperacionNoPermitidaException;
@@ -238,6 +239,79 @@ class ReservaControllerTest {
         mockMvc.perform(get(URL).param("estado", "PERDIDO"))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void cancelarReservaDevuelve200ConLaReservaCancelada() throws Exception {
+        ProcesoReserva cancelado = proceso(EstadoProceso.CANCELADO);
+        cancelado.setMotivo("No puedo ir");
+        cancelado.setCanceladaEn(Instant.parse("2026-11-03T15:00:00Z"));
+        when(reservaService.cancelarReserva(LOGIN, 1L, "No puedo ir")).thenReturn(cancelado);
+
+        mockMvc.perform(post(URL + "/1/cancelar").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motivo\": \"No puedo ir\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivo").value("No puedo ir"))
+                .andExpect(jsonPath("$.canceladaEn").value("2026-11-03T15:00:00Z"))
+                .andExpect(jsonPath("$.puedeCancelar").value(false));
+    }
+
+    @Test
+    void cancelarReservaSinCuerpoNoMandaMotivo() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null)).thenReturn(proceso(EstadoProceso.CANCELADO));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cancelarReservaConUnMotivoDeMasDe500CaracteresDevuelve400() throws Exception {
+        mockMvc.perform(post(URL + "/1/cancelar").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motivo\": \"" + "x".repeat(501) + "\"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void cancelarReservaAjenaOInexistenteDevuelve404() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 2L, null)).thenThrow(new ProcesoReservaNoEncontradoException(2L));
+
+        mockMvc.perform(post(URL + "/2/cancelar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cancelarReservaNoConfirmadaDevuelve409ConElEstado() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null)).thenThrow(new OperacionNoPermitidaException(
+                "La reserva todavía no está confirmada: usá abandonar el proceso (CU-10)", EstadoProceso.BLOQUEADO));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.estado").value("BLOQUEADO"))
+                .andExpect(jsonPath("$.detail").value(
+                        "La reserva todavía no está confirmada: usá abandonar el proceso (CU-10)"));
+    }
+
+    @Test
+    void cancelarReservaRechazadaPorLaCatedraDevuelve502() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null))
+                .thenThrow(new CatedraRechazoException("HTTP 409", "RESERVATION_NOT_CANCELLABLE", null));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.detail").value("La cátedra rechazó la cancelación: la reserva sigue confirmada"));
+    }
+
+    @Test
+    void cancelarReservaSinRespuestaDeLaCatedraDevuelve503() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null))
+                .thenThrow(new CatedraNoDisponibleException("timeout", null));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(
+                        "No se pudo confirmar la cancelación con la cátedra: la reserva sigue confirmada"));
     }
 
     @Test

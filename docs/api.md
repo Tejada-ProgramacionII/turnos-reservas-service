@@ -134,7 +134,7 @@ Crea el hold en la cátedra y lo confirma. El header `Location` apunta a `/api/r
 
 ### `GET /api/reservas?estado={estado}&page={n}&size={m}` — mis reservas (CU-07)
 
-Los procesos del usuario autenticado, primero los más recientes. `estado` es opcional (un valor de `EstadoProceso`). Por defecto `page=0` y `size=20`.
+Los procesos del usuario autenticado, primero los más recientes. `estado` es opcional (un valor de `EstadoProceso`). Por defecto `page=0` y `size=20`. Lee los procesos locales sin consultar a la cátedra: el estado se mantiene al día con los eventos de Kafka y con la reconciliación (CU-09, cada minuto).
 
 | Código | Cuándo |
 | --- | --- |

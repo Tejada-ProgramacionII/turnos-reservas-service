@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,7 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRecha
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ProcesoReservaRepository;
 import ar.edu.um.programacion2.turnos.reserva.domain.ports.out.ReservasCatedraClient;
@@ -418,6 +420,27 @@ class IniciarReservaUseCaseImplTest {
                     .filter(proceso -> reservationProcessId.equals(proceso.getReservationProcessId()))
                     .findFirst()
                     .map(RepositorioEnMemoria::copiar);
+        }
+
+        @Override
+        public Pagina<ProcesoReserva> findByUsuarioId(Long usuarioId, EstadoProceso estado, int pagina, int tamanio) {
+            throw new UnsupportedOperationException("CU-04 no lista procesos");
+        }
+
+        @Override
+        public List<ProcesoReserva> findByEstados(Set<EstadoProceso> estados) {
+            return procesos.values().stream()
+                    .filter(proceso -> estados.contains(proceso.getEstado()))
+                    .map(RepositorioEnMemoria::copiar)
+                    .toList();
+        }
+
+        @Override
+        public List<ProcesoReserva> findConfirmadosDesde(LocalDate fecha) {
+            return procesos.values().stream()
+                    .filter(proceso -> proceso.getEstado() == EstadoProceso.CONFIRMADO && !proceso.getFecha().isBefore(fecha))
+                    .map(RepositorioEnMemoria::copiar)
+                    .toList();
         }
 
         // Simula al consumidor de Kafka guardando el pedido de teléfono por su cuenta.

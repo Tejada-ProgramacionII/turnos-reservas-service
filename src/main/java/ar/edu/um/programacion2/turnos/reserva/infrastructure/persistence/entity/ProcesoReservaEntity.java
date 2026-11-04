@@ -76,6 +76,9 @@ public class ProcesoReservaEntity {
     @Column(length = 500)
     private String motivo;
 
+    @Column
+    private Instant canceladaEn;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private EstadoProceso estado;

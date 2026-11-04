@@ -16,8 +16,8 @@ class EstadoProcesoTest {
 
     private static final List<String> VALIDAS = List.of(
             "INICIADO>BLOQUEADO", "INICIADO>FALLIDO", "INICIADO>CANCELADO",
-            "BLOQUEADO>ESPERANDO_TELEFONO", "BLOQUEADO>VENCIDO", "BLOQUEADO>FALLIDO", "BLOQUEADO>CANCELADO",
-            "ESPERANDO_TELEFONO>TELEFONO_ENVIADO", "ESPERANDO_TELEFONO>VENCIDO", "ESPERANDO_TELEFONO>INVALIDO",
+            "BLOQUEADO>ESPERANDO_TELEFONO", "BLOQUEADO>CONFIRMADO", "BLOQUEADO>VENCIDO", "BLOQUEADO>FALLIDO", "BLOQUEADO>CANCELADO",
+            "ESPERANDO_TELEFONO>TELEFONO_ENVIADO", "ESPERANDO_TELEFONO>CONFIRMADO", "ESPERANDO_TELEFONO>VENCIDO", "ESPERANDO_TELEFONO>INVALIDO",
             "ESPERANDO_TELEFONO>FALLIDO", "ESPERANDO_TELEFONO>CANCELADO",
             "TELEFONO_ENVIADO>ESPERANDO_TELEFONO", "TELEFONO_ENVIADO>CONFIRMADO", "TELEFONO_ENVIADO>VENCIDO",
             "TELEFONO_ENVIADO>INVALIDO", "TELEFONO_ENVIADO>FALLIDO", "TELEFONO_ENVIADO>CANCELADO",
@@ -55,8 +55,27 @@ class EstadoProcesoTest {
         assertThat(estado.esFinal()).isFalse();
     }
 
+    @ParameterizedTest
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"})
+    void antesDeEnviarElTelefonoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isTrue();
+        assertThat(estado.esCancelable()).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"INICIADO", "BLOQUEADO", "ESPERANDO_TELEFONO"}, mode = EnumSource.Mode.EXCLUDE)
+    void conElTelefonoEnviadoOTerminadoNoSePuedeAbandonar(EstadoProceso estado) {
+        assertThat(estado.esAbandonable()).isFalse();
+    }
+
     @Test
-    void elDiagramaTieneDiecinueveTransiciones() {
+    void soloElConfirmadoSePuedeCancelar() {
+        assertThat(Arrays.stream(EstadoProceso.values()).filter(EstadoProceso::esCancelable))
+                .containsExactly(EstadoProceso.CONFIRMADO);
+    }
+
+    @Test
+    void elDiagramaTieneVeintiunTransiciones() {
         assertThat(transicionesValidas()).hasSize(VALIDAS.size());
     }
 

@@ -11,12 +11,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,13 +32,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoNoDisponibleException;
 import ar.edu.um.programacion2.turnos.disponibilidad.application.exception.CatalogoRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDisponibleException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.MensajeriaNoDisponibleException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.OperacionNoPermitidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProcesoReservaNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ProfesionalNoEncontradoException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaInvalidaException;
 import ar.edu.um.programacion2.turnos.reserva.application.exception.ReservaRechazadaException;
+import ar.edu.um.programacion2.turnos.reserva.application.exception.TelefonoInvalidoException;
 import ar.edu.um.programacion2.turnos.reserva.application.service.ReservaService;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoProceso;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.Pagina;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ProcesoReserva;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.web.mapper.ProcesoReservaDtoMapper;
 
@@ -49,6 +56,11 @@ class ReservaControllerTest {
     private static final LocalTime HORA = LocalTime.of(9, 30);
     private static final String CUERPO = """
             {"profesionalId": 201, "fecha": "2026-11-02", "horaInicio": "09:30"}
+            """;
+    private static final String URL_TELEFONO = URL + "/1/telefono";
+    private static final String TELEFONO = "+54 9 261 555-1234";
+    private static final String CUERPO_TELEFONO = """
+            {"telefono": "+54 9 261 555-1234"}
             """;
 
     @Mock
@@ -183,6 +195,212 @@ class ReservaControllerTest {
                 .andExpect(jsonPath("$.detail").value("No se encontró el proceso de reserva con id: 2"));
     }
 
+    @Test
+    void getMisReservasDevuelveLaPaginaConElTotal() throws Exception {
+        ProcesoReserva confirmado = proceso(EstadoProceso.CONFIRMADO);
+        confirmado.setReservationProcessId("process-1");
+        confirmado.setTelefono("+5490000000000");
+        when(reservaService.getMisReservas(LOGIN, EstadoProceso.CONFIRMADO, 1, 5)).thenReturn(
+                Pagina.<ProcesoReserva>builder().contenido(List.of(confirmado)).total(6).build());
+
+        mockMvc.perform(get(URL).param("estado", "CONFIRMADO").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "6"))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].estado").value("CONFIRMADO"))
+                .andExpect(jsonPath("$[0].puedeCancelar").value(true))
+                .andExpect(jsonPath("$[0].puedeAbandonar").value(false))
+                .andExpect(jsonPath("$[0].telefono").doesNotExist())
+                .andExpect(jsonPath("$[0].holdId").doesNotExist())
+                .andExpect(jsonPath("$[0].reservationProcessId").doesNotExist());
+    }
+
+    @Test
+    void getMisReservasSinParametrosUsaLaPrimeraPaginaDeVeinte() throws Exception {
+        when(reservaService.getMisReservas(LOGIN, null, 0, 20)).thenReturn(
+                Pagina.<ProcesoReserva>builder().contenido(List.of()).total(0).build());
+
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "0"))
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"-1, 20", "0, 0", "0, 101"})
+    void getMisReservasConPaginacionInvalidaDevuelve400(int page, int size) throws Exception {
+        mockMvc.perform(get(URL).param("page", String.valueOf(page)).param("size", String.valueOf(size)))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void getMisReservasConUnEstadoInexistenteDevuelve400() throws Exception {
+        mockMvc.perform(get(URL).param("estado", "PERDIDO"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void cancelarReservaDevuelve200ConLaReservaCancelada() throws Exception {
+        ProcesoReserva cancelado = proceso(EstadoProceso.CANCELADO);
+        cancelado.setMotivo("No puedo ir");
+        cancelado.setCanceladaEn(Instant.parse("2026-11-03T15:00:00Z"));
+        when(reservaService.cancelarReserva(LOGIN, 1L, "No puedo ir")).thenReturn(cancelado);
+
+        mockMvc.perform(post(URL + "/1/cancelar").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motivo\": \"No puedo ir\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivo").value("No puedo ir"))
+                .andExpect(jsonPath("$.canceladaEn").value("2026-11-03T15:00:00Z"))
+                .andExpect(jsonPath("$.puedeCancelar").value(false));
+    }
+
+    @Test
+    void cancelarReservaSinCuerpoNoMandaMotivo() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null)).thenReturn(proceso(EstadoProceso.CANCELADO));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cancelarReservaConUnMotivoDeMasDe500CaracteresDevuelve400() throws Exception {
+        mockMvc.perform(post(URL + "/1/cancelar").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motivo\": \"" + "x".repeat(501) + "\"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void cancelarReservaAjenaOInexistenteDevuelve404() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 2L, null)).thenThrow(new ProcesoReservaNoEncontradoException(2L));
+
+        mockMvc.perform(post(URL + "/2/cancelar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cancelarReservaNoConfirmadaDevuelve409ConElEstado() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null)).thenThrow(new OperacionNoPermitidaException(
+                "La reserva todavía no está confirmada: usá abandonar el proceso (CU-10)", EstadoProceso.BLOQUEADO));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.estado").value("BLOQUEADO"))
+                .andExpect(jsonPath("$.detail").value(
+                        "La reserva todavía no está confirmada: usá abandonar el proceso (CU-10)"));
+    }
+
+    @Test
+    void cancelarReservaRechazadaPorLaCatedraDevuelve502() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null))
+                .thenThrow(new CatedraRechazoException("HTTP 409", "RESERVATION_NOT_CANCELLABLE", null));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.detail").value("La cátedra rechazó la cancelación: la reserva sigue confirmada"));
+    }
+
+    @Test
+    void cancelarReservaSinRespuestaDeLaCatedraDevuelve503() throws Exception {
+        when(reservaService.cancelarReserva(LOGIN, 1L, null))
+                .thenThrow(new CatedraNoDisponibleException("timeout", null));
+
+        mockMvc.perform(post(URL + "/1/cancelar"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(
+                        "No se pudo confirmar la cancelación con la cátedra: la reserva sigue confirmada"));
+    }
+
+    @Test
+    void informarTelefonoDevuelve202ConElProcesoEnTelefonoEnviado() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenReturn(proceso(EstadoProceso.TELEFONO_ENVIADO));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.estado").value("TELEFONO_ENVIADO"))
+                .andExpect(jsonPath("$.telefono").doesNotExist());
+    }
+
+    @Test
+    void informarTelefonoVacioDevuelve400() throws Exception {
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content("{\"telefono\": \" \"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(reservaService);
+    }
+
+    @Test
+    void informarTelefonoInvalidoDevuelve400ConElFormato() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO))
+                .thenThrow(new TelefonoInvalidoException("El teléfono tiene que tener de 7 a 15 dígitos"));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("El teléfono tiene que tener de 7 a 15 dígitos"));
+    }
+
+    @Test
+    void informarTelefonoAjenoOInexistenteDevuelve404() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenThrow(new ProcesoReservaNoEncontradoException(1L));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void informarTelefonoEnUnEstadoQueNoLoAdmiteDevuelve409ConElEstado() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO)).thenThrow(new OperacionNoPermitidaException(
+                "Todavía no se puede informar el teléfono: la cátedra no lo pidió", EstadoProceso.BLOQUEADO));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Todavía no se puede informar el teléfono: la cátedra no lo pidió"))
+                .andExpect(jsonPath("$.estado").value("BLOQUEADO"));
+    }
+
+    @Test
+    void informarTelefonoSinKafkaDevuelve503() throws Exception {
+        when(reservaService.informarTelefono(LOGIN, 1L, TELEFONO))
+                .thenThrow(new MensajeriaNoDisponibleException("sin broker", null));
+
+        mockMvc.perform(post(URL_TELEFONO).contentType(MediaType.APPLICATION_JSON).content(CUERPO_TELEFONO))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value("No se pudo enviar el teléfono: probá de nuevo"));
+    }
+
+    @Test
+    void abandonarProcesoDevuelve200ConElProcesoCancelado() throws Exception {
+        ProcesoReserva cancelado = proceso(EstadoProceso.CANCELADO);
+        cancelado.setMotivo("Abandonado por el usuario");
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenReturn(cancelado);
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"))
+                .andExpect(jsonPath("$.motivo").value("Abandonado por el usuario"));
+    }
+
+    @Test
+    void abandonarProcesoAjenoOInexistenteDevuelve404() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 2L)).thenThrow(new ProcesoReservaNoEncontradoException(2L));
+
+        mockMvc.perform(post(URL + "/2/abandonar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void abandonarProcesoConfirmadoDevuelve409ConElEstado() throws Exception {
+        when(reservaService.abandonarProceso(LOGIN, 1L)).thenThrow(new OperacionNoPermitidaException(
+                "El turno ya está confirmado: usá la cancelación de la reserva (CU-08)", EstadoProceso.CONFIRMADO));
+
+        mockMvc.perform(post(URL + "/1/abandonar"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("El turno ya está confirmado: usá la cancelación de la reserva (CU-08)"))
+                .andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+    }
+
     private static ProcesoReserva proceso(EstadoProceso estado) {
         return ProcesoReserva.builder()
                 .id(1L)
@@ -192,6 +410,7 @@ class ReservaControllerTest {
                 .horaInicio(HORA)
                 .horaFin(LocalTime.of(10, 0))
                 .holdId("hold-1")
+                .telefono("+5492615551234")
                 .expiresAt(Instant.parse("2026-10-27T18:10:00Z"))
                 .estado(estado)
                 .build();

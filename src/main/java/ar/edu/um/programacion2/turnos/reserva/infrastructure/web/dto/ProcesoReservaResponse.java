@@ -27,4 +27,7 @@ public class ProcesoReservaResponse {
     private Instant expiresAt;
     private String mensajePedido;
     private String motivo;
+    private Instant canceladaEn;
+    private boolean puedeAbandonar;
+    private boolean puedeCancelar;
 }

@@ -76,6 +76,21 @@ class JpaUsuarioRepositoryAdapterTest {
     }
 
     @Test
+    void findByIdDevuelveElUsuarioCuandoExiste() {
+        when(jpaUsuarioRepository.findById(1L)).thenReturn(Optional.of(
+                UsuarioEntity.builder().id(1L).login("jtejada").authorities(Set.of("ROLE_USER")).build()));
+
+        assertThat(adapter.findById(1L)).map(Usuario::getLogin).contains("jtejada");
+    }
+
+    @Test
+    void findByIdDevuelveVacioCuandoNoExiste() {
+        when(jpaUsuarioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThat(adapter.findById(99L)).isEmpty();
+    }
+
+    @Test
     void findByLoginDevuelveVacioCuandoNoExiste() {
         when(jpaUsuarioRepository.findByLogin("nadie")).thenReturn(Optional.empty());
 

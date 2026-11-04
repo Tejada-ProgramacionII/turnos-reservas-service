@@ -11,6 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -31,7 +34,9 @@ import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraNoDis
 import ar.edu.um.programacion2.turnos.reserva.application.exception.CatedraRechazoException;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldConfirmado;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.HoldCreado;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.EstadoReservaCatedra;
 import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCancelada;
+import ar.edu.um.programacion2.turnos.reserva.domain.model.ReservaCatedra;
 import ar.edu.um.programacion2.turnos.reserva.infrastructure.client.mapper.ReservaClientMapper;
 
 class HttpReservasCatedraClientAdapterTest {
@@ -79,8 +84,32 @@ class HttpReservasCatedraClientAdapterTest {
             }
             """;
 
+    // Ejemplo de la sección 11 del contrato; el teléfono del paciente no se lee.
+    private static final String RESERVA_JSON = """
+            {
+              "reservationId": 8251,
+              "reservationProcessId": "process-a92b47d0",
+              "externalPatientId": "user-42",
+              "appointmentDate": "2026-09-14",
+              "startTime": "09:30:00",
+              "endTime": "10:00:00",
+              "professionalId": 15,
+              "professionalFirstName": "Ana",
+              "professionalLastName": "Gomez",
+              "patientFirstName": "Juan",
+              "patientLastName": "Perez",
+              "patientPhone": "+5492615551234",
+              "status": "CONFIRMED",
+              "createdAt": "2026-09-10T14:35:00Z",
+              "confirmedAt": "2026-09-10T14:36:00Z",
+              "cancelledAt": null,
+              "cancellationReason": null
+            }
+            """;
+
     private final AtomicReference<String> metodoRecibido = new AtomicReference<>();
     private final AtomicReference<String> pathRecibido = new AtomicReference<>();
+    private final AtomicReference<String> queryRecibida = new AtomicReference<>();
     private final AtomicReference<String> cuerpoRecibido = new AtomicReference<>();
     private final AtomicInteger statusRespuesta = new AtomicInteger();
     private final AtomicReference<String> tipoRespuesta = new AtomicReference<>(MediaType.APPLICATION_JSON_VALUE);
@@ -93,6 +122,7 @@ class HttpReservasCatedraClientAdapterTest {
         servidor.createContext("/", exchange -> {
             metodoRecibido.set(exchange.getRequestMethod());
             pathRecibido.set(exchange.getRequestURI().getPath());
+            queryRecibida.set(exchange.getRequestURI().getQuery());
             cuerpoRecibido.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
             if (cuerpoRespuesta.get() == null) {
                 exchange.sendResponseHeaders(statusRespuesta.get(), -1);
@@ -237,6 +267,54 @@ class HttpReservasCatedraClientAdapterTest {
                 .isInstanceOf(CatedraNoDisponibleException.class)
                 .hasMessageNotContaining(JWT)
                 .hasMessageNotContaining("localhost");
+    }
+
+    @Test
+    void listarReservasPideLasDelPacienteSinFiltroDeFechasYTraduceLaRespuesta() {
+        responder(200, "[" + RESERVA_JSON + "]");
+
+        List<ReservaCatedra> reservas = crearAdapter(servidor.getAddress().getPort()).listarReservas("user-42");
+
+        assertThat(metodoRecibido.get()).isEqualTo("GET");
+        assertThat(pathRecibido.get()).isEqualTo("/api/appointments");
+        assertThat(queryRecibida.get()).isEqualTo("externalPatientId=user-42&page=0&size=100");
+        assertThat(reservas).singleElement().satisfies(reserva -> {
+            assertThat(reserva.getReservationId()).isEqualTo(8251L);
+            assertThat(reserva.getReservationProcessId()).isEqualTo("process-a92b47d0");
+            assertThat(reserva.getEstado()).isEqualTo(EstadoReservaCatedra.CONFIRMADA);
+        });
+    }
+
+    @Test
+    void listarReservasSigueConLaPaginaSiguienteMientrasLleguenCompletas() {
+        servidor.createContext("/api/appointments", exchange -> {
+            boolean primera = exchange.getRequestURI().getQuery().contains("page=0");
+            int cantidad = primera ? HttpReservasCatedraClientAdapter.TAMANO_PAGINA : 1;
+            String cuerpo = IntStream.range(0, cantidad)
+                    .mapToObj(i -> RESERVA_JSON.replace("process-a92b47d0", "process-" + (primera ? "" : "b") + i))
+                    .collect(Collectors.joining(",", "[", "]"));
+            byte[] bytes = cuerpo.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (OutputStream salida = exchange.getResponseBody()) {
+                salida.write(bytes);
+            }
+        });
+
+        List<ReservaCatedra> reservas = crearAdapter(servidor.getAddress().getPort()).listarReservas("user-42");
+
+        assertThat(reservas).hasSize(HttpReservasCatedraClientAdapter.TAMANO_PAGINA + 1);
+        assertThat(reservas.getLast().getReservationProcessId()).isEqualTo("process-b0");
+    }
+
+    @Test
+    void listarReservasLanzaNoDisponibleSiLaCatedraRespondeUn500() {
+        responder(500, null);
+        HttpReservasCatedraClientAdapter adapter = crearAdapter(servidor.getAddress().getPort());
+
+        assertThatThrownBy(() -> adapter.listarReservas("user-42"))
+                .isInstanceOf(CatedraNoDisponibleException.class)
+                .hasMessageContaining("listar las reservas");
     }
 
     private void responder(int status, String cuerpo) {

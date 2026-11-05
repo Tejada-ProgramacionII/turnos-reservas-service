@@ -39,7 +39,7 @@
 - **4a. El proceso está en un estado final.** Se registra y se ignora (D-05).
 - **4b. El pedido llega antes que la respuesta REST de la confirmación (CU-04).** Se guarda igual y el proceso pasa a `ESPERANDO_TELEFONO`; cuando llega la respuesta REST, no cambia nada.
 - **8a. El proceso no existe o es de otro usuario.** Se responde "no encontrado" (D-13).
-- **8b. El pedido todavía no llegó.** Se responde que aún no se puede informar el teléfono; la app vuelve a consultar.
+- **8b. El pedido todavía no llegó.** Se responde que aún no se puede informar el teléfono; la app vuelve a consultar. Pasa también si el proceso llegó a `ESPERANDO_TELEFONO` por la recuperación (CU-09), que no trae el `requestEventId`.
 - **8c. El proceso venció o está en un estado final.** Se rechaza informando el estado.
 - **9a. El teléfono no cumple la regla.** Se rechaza indicando el formato esperado. El proceso no cambia y el usuario puede corregirlo.
 - **10a. Kafka no acepta el mensaje.** Se reintenta un número limitado de veces; si falla, el proceso sigue en `ESPERANDO_TELEFONO` y se avisa al usuario que intente de nuevo.

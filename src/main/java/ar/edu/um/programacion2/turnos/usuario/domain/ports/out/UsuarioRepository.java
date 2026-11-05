@@ -7,6 +7,8 @@ import ar.edu.um.programacion2.turnos.usuario.domain.model.Usuario;
 public interface UsuarioRepository {
     Usuario create(Usuario usuario);
 
+    Optional<Usuario> findById(Long id);
+
     Optional<Usuario> findByLogin(String login);
 
     boolean existsByLogin(String login);

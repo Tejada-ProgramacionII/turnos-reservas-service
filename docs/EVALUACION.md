@@ -3,19 +3,19 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (UM): RepoSense + análisis de calidad de **7 dimensiones**. **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas) + build: es una criba para orientar la revisión, **no una nota**. La **documentación** del repositorio no se evalúa.
-> Generado: 2026-11-12.
+> Generado: 2026-11-17.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad | **77/100** |
+| Índice de calidad | **78/100** |
 | Tipo de repositorio | `backend` |
 | Build (`mvnw verify` / `gradlew check`) | OK |
 | Código (LOC) | 8,743 |
 | Archivos de código | 198 |
 | Clases | 199 |
-| Código dentro de clases (%POO) | 73% |
+| Código dentro de clases (%POO) | 63% |
 | Funciones fuera de clases | 0 |
 | Duplicación (puerta) | 2.6% |
 | Duplicación lógica | 2.9% |
@@ -52,7 +52,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 | Dimensión | Peso | Puntaje |
 |:--|--:|--:|
-| **D1** Diseño OO, SOLID y patrones (20%) | 20% | 2 |
+| **D1** Diseño OO, SOLID y patrones (20%) | 20% | 4 |
 | **D2** Arquitectura hexagonal — backend (15%) | 15% | 100 |
 | **D3** Frontend KMP: MVVM y buenas prácticas (10%) | 10% | N/A |
 | **D4** Integración y contrato (10%) | 10% | 90 |
@@ -64,7 +64,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 - **Qué mide:** Métricas orientadas a objetos (clases, métodos, campos, cohesión, acoplamiento, herencia) y proxies de SOLID, más patrones de diseño.
 - **Por qué importa:** El eje de la materia es el buen uso de la POO y su arquitectura: un diseño con clases claras y poco acopladas es más fácil de entender, probar y cambiar.
-- **Tu resultado:** **2/100**
+- **Tu resultado:** **4/100**
 - **Para investigar la causa:**
     - ¿Se pensó el modelo de clases antes de codificar o se agrupó después?
     - ¿Qué clases concentran muchas responsabilidades a la vez?
@@ -104,7 +104,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 El análisis encontró las siguientes señales (archivo, sin número de línea a propósito):
 
-**DIP/concretos** (93)
+**DIP/concretos** (36)
 - clase 'JwtTokenGeneratorAdapter' muy acoplada (CBO=9) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/security/adapter/JwtTokenGeneratorAdapter.java`
 - clase 'UsuarioController' muy acoplada (CBO=21) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/controller/UsuarioController.java`
 - clase 'UsuarioController' instancia 3 concretos (CBO=21) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/controller/UsuarioController.java`
@@ -141,79 +141,14 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - clase 'JwtConfig' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/programacion2/turnos/config/JwtConfig.java`
 - clase 'JwtConfig' instancia 4 concretos (CBO=12) — `src/main/java/ar/edu/um/programacion2/turnos/config/JwtConfig.java`
 - clase 'SecurityConfig' muy acoplada (CBO=8) — `src/main/java/ar/edu/um/programacion2/turnos/config/SecurityConfig.java`
-- clase 'JwtTokenGeneratorAdapterTest' muy acoplada (CBO=15) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/security/adapter/JwtTokenGeneratorAdapterTest.java`
-- clase 'JwtTokenGeneratorAdapterTest' instancia 3 concretos (CBO=15) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/security/adapter/JwtTokenGeneratorAdapterTest.java`
-- clase 'UsuarioMapperTest' muy acoplada (CBO=8) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/persistence/mapper/UsuarioMapperTest.java`
-- clase 'JpaUsuarioRepositoryAdapterTest' muy acoplada (CBO=8) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/persistence/adapter/JpaUsuarioRepositoryAdapterTest.java`
-- clase 'UsuarioControllerTest' muy acoplada (CBO=26) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/controller/UsuarioControllerTest.java`
-- clase 'UsuarioControllerTest' instancia 8 concretos (CBO=26) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/controller/UsuarioControllerTest.java`
-- clase 'CreateUsuarioUseCaseImplTest' muy acoplada (CBO=11) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/application/usecases/CreateUsuarioUseCaseImplTest.java`
-- clase 'AgendaProfesionalClientMapperTest' muy acoplada (CBO=9) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/mapper/AgendaProfesionalClientMapperTest.java`
-- clase 'OcupacionClientMapperTest' muy acoplada (CBO=13) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/mapper/OcupacionClientMapperTest.java`
-- clase 'HttpCatalogoClientAdapterTest' muy acoplada (CBO=45) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpCatalogoClientAdapterTest.java`
-- clase 'HttpCatalogoClientAdapterTest' instancia 10 concretos (CBO=45) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpCatalogoClientAdapterTest.java`
-- clase 'HttpOcupacionesCatedraClientAdapterTest' muy acoplada (CBO=33) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpOcupacionesCatedraClientAdapterTest.java`
-- clase 'HttpOcupacionesCatedraClientAdapterTest' instancia 8 concretos (CBO=33) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpOcupacionesCatedraClientAdapterTest.java`
-- clase 'DisponibilidadControllerTest' muy acoplada (CBO=19) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/web/controller/DisponibilidadControllerTest.java`
-- clase 'DisponibilidadControllerTest' instancia 8 concretos (CBO=19) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/web/controller/DisponibilidadControllerTest.java`
-- clase 'DisponibilidadServiceTest' muy acoplada (CBO=14) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/application/service/DisponibilidadServiceTest.java`
-- clase 'DisponibilidadServiceTest' instancia 5 concretos (CBO=14) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/application/service/DisponibilidadServiceTest.java`
-- clase 'ConsultarDisponibilidadUseCaseImplTest' muy acoplada (CBO=26) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/application/usecases/ConsultarDisponibilidadUseCaseImplTest.java`
-- clase 'ReconciliacionSchedulerTest' muy acoplada (CBO=9) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/scheduling/ReconciliacionSchedulerTest.java`
-- clase 'ReconciliacionSchedulerTest' instancia 5 concretos (CBO=9) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/scheduling/ReconciliacionSchedulerTest.java`
-- clase 'ProcesoReservaMapperTest' muy acoplada (CBO=12) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/mapper/ProcesoReservaMapperTest.java`
-- clase 'JpaProcesoReservaRepositoryAdapterTest' muy acoplada (CBO=12) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/adapter/JpaProcesoReservaRepositoryAdapterTest.java`
-- clase 'JpaProcesoReservaRepositoryAdapterConsultaTest' muy acoplada (CBO=12) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/adapter/JpaProcesoReservaRepositoryAdapterConsultaTest.java`
-- clase 'EventoReservaConsumerTest' muy acoplada (CBO=32) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/consumer/EventoReservaConsumerTest.java`
-- clase 'EventoReservaConsumerTest' instancia 3 concretos (CBO=32) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/consumer/EventoReservaConsumerTest.java`
-- clase 'EventoReservaMessageMapperTest' muy acoplada (CBO=9) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/mapper/EventoReservaMessageMapperTest.java`
-- clase 'TelefonoInformadoMessageMapperTest' muy acoplada (CBO=9) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/mapper/TelefonoInformadoMessageMapperTest.java`
-- clase 'KafkaTelefonoEventPublisherAdapterTest' muy acoplada (CBO=18) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/adapter/KafkaTelefonoEventPublisherAdapterTest.java`
-- clase 'KafkaTelefonoEventPublisherAdapterTest' instancia 4 concretos (CBO=18) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/adapter/KafkaTelefonoEventPublisherAdapterTest.java`
-- clase 'ReservaClientMapperTest' muy acoplada (CBO=30) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/mapper/ReservaClientMapperTest.java`
-- clase 'HttpReservasCatedraClientAdapterTest' muy acoplada (CBO=52) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/adapter/HttpReservasCatedraClientAdapterTest.java`
-- clase 'HttpReservasCatedraClientAdapterTest' instancia 8 concretos (CBO=52) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/adapter/HttpReservasCatedraClientAdapterTest.java`
-- clase 'ReservaControllerTest' muy acoplada (CBO=48) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/controller/ReservaControllerTest.java`
-- clase 'ReservaControllerTest' instancia 21 concretos (CBO=48) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/controller/ReservaControllerTest.java`
-- clase 'ProcesoReservaDtoMapperTest' muy acoplada (CBO=13) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/mapper/ProcesoReservaDtoMapperTest.java`
-- clase 'ReservaServiceTest' muy acoplada (CBO=15) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/service/ReservaServiceTest.java`
-- clase 'IniciarReservaUseCaseImplTest' muy acoplada (CBO=63) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'IniciarReservaUseCaseImplTest' instancia 8 concretos (CBO=63) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'RepositorioEnMemoria' muy acoplada (CBO=11) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'ReconciliarProcesosUseCaseImplTest' muy acoplada (CBO=40) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/ReconciliarProcesosUseCaseImplTest.java`
-- clase 'ReconciliarProcesosUseCaseImplTest' instancia 5 concretos (CBO=40) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/ReconciliarProcesosUseCaseImplTest.java`
-- clase 'InformarTelefonoUseCaseImplTest' muy acoplada (CBO=28) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/InformarTelefonoUseCaseImplTest.java`
-- clase 'InformarTelefonoUseCaseImplTest' instancia 3 concretos (CBO=28) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/InformarTelefonoUseCaseImplTest.java`
-- clase 'ProcesarEventoReservaUseCaseImplTest' muy acoplada (CBO=33) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/ProcesarEventoReservaUseCaseImplTest.java`
-- clase 'GetMisReservasUseCaseImplTest' muy acoplada (CBO=8) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/GetMisReservasUseCaseImplTest.java`
-- clase 'AbandonarProcesoUseCaseImplTest' muy acoplada (CBO=25) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/AbandonarProcesoUseCaseImplTest.java`
-- clase 'CancelarReservaUseCaseImplTest' muy acoplada (CBO=31) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/CancelarReservaUseCaseImplTest.java`
-- clase 'CancelarReservaUseCaseImplTest' instancia 3 concretos (CBO=31) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/CancelarReservaUseCaseImplTest.java`
-- clase 'EstadoProcesoTest' muy acoplada (CBO=14) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/domain/model/EstadoProcesoTest.java`
-- clase 'ProcesoReservaTest' muy acoplada (CBO=8) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/domain/model/ProcesoReservaTest.java`
-- clase 'CatalogoClientConfigTest' muy acoplada (CBO=15) — `src/test/java/ar/edu/um/programacion2/turnos/config/CatalogoClientConfigTest.java`
-- clase 'CatalogoClientConfigTest' instancia 5 concretos (CBO=15) — `src/test/java/ar/edu/um/programacion2/turnos/config/CatalogoClientConfigTest.java`
-- clase 'JwtUsuarioInterceptorTest' muy acoplada (CBO=16) — `src/test/java/ar/edu/um/programacion2/turnos/config/JwtUsuarioInterceptorTest.java`
-- clase 'JwtUsuarioInterceptorTest' instancia 4 concretos (CBO=16) — `src/test/java/ar/edu/um/programacion2/turnos/config/JwtUsuarioInterceptorTest.java`
-- clase 'CatedraClientConfigTest' muy acoplada (CBO=10) — `src/test/java/ar/edu/um/programacion2/turnos/config/CatedraClientConfigTest.java`
-- clase 'CatedraClientConfigTest' instancia 3 concretos (CBO=10) — `src/test/java/ar/edu/um/programacion2/turnos/config/CatedraClientConfigTest.java`
-- clase 'SecurityConfigTest' muy acoplada (CBO=14) — `src/test/java/ar/edu/um/programacion2/turnos/config/SecurityConfigTest.java`
 
-**SRP/responsabilidad** (82)
+**SRP/responsabilidad** (39)
 - clase 'UsuarioEntity' grande (LOC=34, métodos=0, campos=15) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/persistence/entity/UsuarioEntity.java`
-- clase 'UsuarioEntity' sin métodos (15 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/persistence/entity/UsuarioEntity.java`
 - clase 'UsuarioRequest' grande (LOC=28, métodos=0, campos=8) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/dto/UsuarioRequest.java`
-- clase 'UsuarioRequest' sin métodos (8 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/dto/UsuarioRequest.java`
 - clase 'UsuarioResponse' grande (LOC=10, métodos=0, campos=8) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/dto/UsuarioResponse.java`
-- clase 'UsuarioResponse' sin métodos (8 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/dto/UsuarioResponse.java`
 - clase 'UsuarioService' con baja cohesión (33%) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/application/service/UsuarioService.java`
 - clase 'Usuario' grande (LOC=17, métodos=0, campos=15) — `src/main/java/ar/edu/um/programacion2/turnos/usuario/domain/model/Usuario.java`
 - clase 'Usuario' sin métodos (15 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/usuario/domain/model/Usuario.java`
-- clase 'OcupacionCatedraResponse' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/dto/OcupacionCatedraResponse.java`
-- clase 'HorarioCatalogoResponse' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/dto/HorarioCatalogoResponse.java`
-- clase 'ProfesionalCatalogoResponse' sin métodos (7 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/dto/ProfesionalCatalogoResponse.java`
-- clase 'OcupacionesCatedraResponse' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/dto/OcupacionesCatedraResponse.java`
-- clase 'DisponibilidadResponse' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/web/dto/DisponibilidadResponse.java`
 - clase 'ConsultarDisponibilidadUseCaseImpl' grande (LOC=66, métodos=12, campos=4) — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/application/usecases/ConsultarDisponibilidadUseCaseImpl.java`
 - clase 'ConsultarDisponibilidadUseCaseImpl' con baja cohesión (8%) — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/application/usecases/ConsultarDisponibilidadUseCaseImpl.java`
 - clase 'Disponibilidad' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/domain/model/Disponibilidad.java`
@@ -222,22 +157,11 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - clase 'AgendaProfesional' sin métodos (7 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/disponibilidad/domain/model/AgendaProfesional.java`
 - método 'ProcesoReservaMapper.actualizadoEn' de 30 líneas — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/mapper/ProcesoReservaMapper.java`
 - clase 'ProcesoReservaEntity' grande (LOC=44, métodos=0, campos=20) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/entity/ProcesoReservaEntity.java`
-- clase 'ProcesoReservaEntity' sin métodos (20 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/entity/ProcesoReservaEntity.java`
 - clase 'TelefonoInformadoMessage' grande (LOC=11, métodos=0, campos=9) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/dto/TelefonoInformadoMessage.java`
-- clase 'TelefonoInformadoMessage' sin métodos (9 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/dto/TelefonoInformadoMessage.java`
-- clase 'EventoReservaMessage' sin métodos (7 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/dto/EventoReservaMessage.java`
 - clase 'ReservaClientMapper' grande (LOC=68, métodos=10, campos=1) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/mapper/ReservaClientMapper.java`
 - clase 'HttpReservasCatedraClientAdapter' grande (LOC=103, métodos=12, campos=8) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/adapter/HttpReservasCatedraClientAdapter.java`
-- clase 'ConfirmacionHoldCatedraRequest' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/ConfirmacionHoldCatedraRequest.java`
-- clase 'HoldCatedraResponse' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/HoldCatedraResponse.java`
-- clase 'ConfirmacionHoldCatedraResponse' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/ConfirmacionHoldCatedraResponse.java`
-- clase 'CancelacionCatedraResponse' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/CancelacionCatedraResponse.java`
-- clase 'HoldCatedraRequest' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/HoldCatedraRequest.java`
-- clase 'ReservaCatedraResponse' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/dto/ReservaCatedraResponse.java`
 - clase 'ReservaController' con baja cohesión (17%) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/controller/ReservaController.java`
 - clase 'ProcesoReservaResponse' grande (LOC=16, métodos=0, campos=14) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/dto/ProcesoReservaResponse.java`
-- clase 'ProcesoReservaResponse' sin métodos (14 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/dto/ProcesoReservaResponse.java`
-- clase 'IniciarReservaRequest' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/dto/IniciarReservaRequest.java`
 - clase 'ReservaService' con baja cohesión (19%) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/application/service/ReservaService.java`
 - clase 'InformarTelefonoUseCaseImpl' con baja cohesión (43%) — `src/main/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/InformarTelefonoUseCaseImpl.java`
 - método 'InformarTelefonoUseCaseImpl.filter' de 30 líneas — `src/main/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/InformarTelefonoUseCaseImpl.java`
@@ -258,30 +182,6 @@ El análisis encontró las siguientes señales (archivo, sin número de línea a
 - clase 'CatedraProperties' sin métodos (4 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/config/CatedraProperties.java`
 - clase 'CatalogoProperties' sin métodos (3 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/config/CatalogoProperties.java`
 - clase 'CatedraKafkaProperties' sin métodos (6 campos): solo datos — `src/main/java/ar/edu/um/programacion2/turnos/config/CatedraKafkaProperties.java`
-- clase 'JpaUsuarioRepositoryAdapterTest' grande (LOC=70, métodos=10, campos=3) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/persistence/adapter/JpaUsuarioRepositoryAdapterTest.java`
-- clase 'UsuarioControllerTest' grande (LOC=78, métodos=11, campos=2) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/controller/UsuarioControllerTest.java`
-- clase 'UsuarioRequestTest' grande (LOC=46, métodos=10, campos=2) — `src/test/java/ar/edu/um/programacion2/turnos/usuario/infrastructure/web/dto/UsuarioRequestTest.java`
-- clase 'HttpCatalogoClientAdapterTest' grande (LOC=145, métodos=13, campos=9) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpCatalogoClientAdapterTest.java`
-- clase 'HttpCatalogoClientAdapterTest' con baja cohesión (42%) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpCatalogoClientAdapterTest.java`
-- clase 'HttpOcupacionesCatedraClientAdapterTest' grande (LOC=133, métodos=11, campos=9) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/client/adapter/HttpOcupacionesCatedraClientAdapterTest.java`
-- clase 'DisponibilidadControllerTest' grande (LOC=98, métodos=11, campos=4) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/infrastructure/web/controller/DisponibilidadControllerTest.java`
-- clase 'ConsultarDisponibilidadUseCaseImplTest' grande (LOC=149, métodos=21, campos=6) — `src/test/java/ar/edu/um/programacion2/turnos/disponibilidad/application/usecases/ConsultarDisponibilidadUseCaseImplTest.java`
-- clase 'JpaProcesoReservaRepositoryAdapterTest' grande (LOC=71, métodos=10, campos=3) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/persistence/adapter/JpaProcesoReservaRepositoryAdapterTest.java`
-- clase 'EventoReservaConsumerTest' grande (LOC=169, métodos=11, campos=8) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/consumer/EventoReservaConsumerTest.java`
-- clase 'EventoReservaConsumerTest' con baja cohesión (15%) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/messaging/consumer/EventoReservaConsumerTest.java`
-- clase 'ReservaClientMapperTest' grande (LOC=85, métodos=10, campos=2) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/mapper/ReservaClientMapperTest.java`
-- clase 'HttpReservasCatedraClientAdapterTest' grande (LOC=251, métodos=18, campos=16) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/client/adapter/HttpReservasCatedraClientAdapterTest.java`
-- clase 'ReservaControllerTest' grande (LOC=305, métodos=35, campos=10) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/infrastructure/web/controller/ReservaControllerTest.java`
-- clase 'ReservaServiceTest' grande (LOC=79, métodos=10, campos=7) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/service/ReservaServiceTest.java`
-- clase 'IniciarReservaUseCaseImplTest' grande (LOC=336, métodos=40, campos=17) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'IniciarReservaUseCaseImplTest' con baja cohesión (43%) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'RepositorioEnMemoria' grande (LOC=55, métodos=10, campos=3) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'RepositorioEnMemoria' con baja cohesión (47%) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/IniciarReservaUseCaseImplTest.java`
-- clase 'ReconciliarProcesosUseCaseImplTest' grande (LOC=191, métodos=13, campos=13) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/ReconciliarProcesosUseCaseImplTest.java`
-- clase 'InformarTelefonoUseCaseImplTest' grande (LOC=175, métodos=16, campos=11) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/InformarTelefonoUseCaseImplTest.java`
-- clase 'ProcesarEventoReservaUseCaseImplTest' grande (LOC=122, métodos=13, campos=6) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/ProcesarEventoReservaUseCaseImplTest.java`
-- clase 'CancelarReservaUseCaseImplTest' grande (LOC=156, métodos=17, campos=8) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/application/usecases/CancelarReservaUseCaseImplTest.java`
-- clase 'EstadoProcesoTest' grande (LOC=64, métodos=13, campos=1) — `src/test/java/ar/edu/um/programacion2/turnos/reserva/domain/model/EstadoProcesoTest.java`
 
 **OCP/type-switch** (1)
 - clase 'JwtUsuarioInterceptor' con 1 type-checks — `src/main/java/ar/edu/um/programacion2/turnos/config/JwtUsuarioInterceptor.java`
@@ -303,17 +203,17 @@ xychart-beta
     title "Índice de calidad a lo largo de los commits"
     x-axis ["079fa24", "5e41ef9", "d4d68ea", "f29ffd3", "1cf6182", "d6b5a6a"]
     y-axis "Índice" 0 --> 100
-    line [0, 15, 44, 55, 58, 66]
+    line [0, 15, 42, 56, 59, 66]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
 |---|---|---|---|---:|---:|---:|---:|---:|
 | 1 | 2026-09-19 | `079fa24` | Joaquin Tejada Pareja | 0 | 0 | 0% | 0.0% | 0 |
 | 2 | 2026-09-19 | `5e41ef9` | Ing. Daniel Quinteros | 0 | 15 | 0% | 0.0% | 0 |
-| 3 | 2026-10-23 | `d4d68ea` | Joaquin Tejada Pareja | 18 | 44 | 56% | 0.0% | 0 |
-| 4 | 2026-10-27 | `f29ffd3` | Joaquin Tejada Pareja | 1,417 | 55 | 69% | 1.9% | 0 |
-| 5 | 2026-10-29 | `1cf6182` | Joaquin Tejada Pareja | 2,942 | 58 | 68% | 2.0% | 0 |
-| 6 | 2026-11-05 | `d6b5a6a` | Joaquin Tejada Pareja | 8,743 | 66 | 73% | 2.6% | 0 |
+| 3 | 2026-10-23 | `d4d68ea` | Joaquin Tejada Pareja | 18 | 42 | 56% | 0.0% | 0 |
+| 4 | 2026-10-27 | `f29ffd3` | Joaquin Tejada Pareja | 1,417 | 56 | 62% | 1.9% | 0 |
+| 5 | 2026-10-29 | `1cf6182` | Joaquin Tejada Pareja | 2,942 | 59 | 58% | 2.0% | 0 |
+| 6 | 2026-11-05 | `d6b5a6a` | Joaquin Tejada Pareja | 8,743 | 66 | 63% | 2.6% | 0 |
 
 ---
 _Informe generado por la cátedra. Las dimensiones y umbrales corresponden a `calidad.py` (perfil `exigente`); el semáforo, a `CRITERIOS-CALIDAD.md`. La documentación del repositorio no se evalúa. Ante dudas, revisá el archivo señalado._
